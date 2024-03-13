@@ -49,7 +49,7 @@ app.get("/", (req, res) => {
 });
 
 io.on("connection", (socket) => {
-  console.log("A client is being connected with an id of:", socket.id);
+  console.log("A client is being connected with an id of:", socket.userID);
 
   // Add the connected client to the mapping
   // authenticatedUsers[socket.id] = socket;
@@ -64,7 +64,7 @@ io.on("connection", (socket) => {
     const recipientSocket = authenticatedUsers[recipientId];
     if (recipientSocket) {
       recipientSocket.emit("privateMessage", {
-        senderId: socket.id,
+        senderId: socket.userID,
         message: message,
       });
     } else {
@@ -74,12 +74,10 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", async () => {
-    // Remove the user from the authenticatedUsers object
     delete authenticatedUsers[socket.userID];
 
     console.log("User disconnected:", socket.userID);
 
-    // Notify other users about the disconnection
     socket.broadcast.emit("userDisconnected", socket.userID);
   });
 });

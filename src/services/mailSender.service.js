@@ -3,10 +3,12 @@ const prisma = require("../configs/databaseConfig");
 const express = require("express");
 const app = express();
 const dotenv = require("dotenv");
+//const prisma = require("../configs/databaseConfig");
 const cors = require("cors");
 const otpGenerator = require("otp-generator");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
+const { emailValidate } = require("../validations/mail");
 
 // Load environment variables
 dotenv.config();
@@ -47,26 +49,31 @@ const sendOTP = async (email, otp) => {
 // Endpoint to send OTP via email
 app.post("/sendotp", async (req, res) => {
   try {
-    // Generate OTP
-    //const userId = req.body.id;
-    const email = req.body.email;
+    const { error, value } = emailValidate(req.body);
 
-    const isEmail = await prisma.user.findUnique({
+    if (error) {
+      return res
+        .status(400)
+        .json({ message: `Validation error: ${error.details[0].message}` });
+    }
+
+    const { email } = value;
+
+    const isUser = await prisma.user.findUnique({
       where: {
         email,
       },
     });
 
-    if (!isEmail) {
-      return res.status(404).send("Email Not Found !!! ");
-    }
+    const isAdmin = await prisma.admin.findUnique({
+      where: {
+        email,
+      },
+    });
 
-    // const otp = otpGenerator.generate(4, {
-    //   digits: true,
-    //   alphabets: false,
-    //   upperCase: false,
-    //   specialChars: false,
-    // });
+    if (!isUser && !isAdmin) {
+      return res.status(404).send("Email Not Found !! ");
+    }
 
     const min = 1000;
     const max = 9999;
@@ -78,9 +85,7 @@ app.post("/sendotp", async (req, res) => {
       data: {
         email: email,
         otp: otp,
-        user: {
-          connect: { email: email },
-        },
+        receiver_id: isUser ? isUser.id : isAdmin.id,
       },
     });
 

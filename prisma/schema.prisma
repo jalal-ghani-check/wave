@@ -15,6 +15,7 @@ model User {
   password String 
   firstName String
   lastName String 
+  profile_image String?
   dateOfBirth DateTime
   address String 
   city String 
@@ -24,7 +25,11 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   messages Message[]
-  otp Otp[]
+  chatsAsSender ChatMessages[] @relation(name: "Sender")
+  chatsAsReceiver ChatMessages[] @relation(name: "Receiver") 
+  senderChats Chat[] @relation("SenderChats")
+  receiverChats Chat[] @relation("ReceiverChats")
+ 
 }
 
 model Admin {
@@ -34,6 +39,7 @@ model Admin {
   firstName String
   lastName String 
   dateOfBirth DateTime
+   profile_image String?
   address String 
   city String 
   country String 
@@ -63,15 +69,42 @@ model Message {
   longitude Float @default(00.000)
   address String   
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt 
+  chats Chat[]  
 }
 
 model Otp {
   id String @id @default(auto()) @map("_id") @db.ObjectId
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String 
+  receiver_id String 
   otp Int
   email String
+  status String @default("pending")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model ChatMessages{
+ id String @id @default(auto()) @map("_id") @db.ObjectId
+ sender User @relation(name:"Sender", fields: [senderId], references: [id])
+ senderId String
+ receiver User @relation(name:"Receiver",fields: [receiverId], references: [id])
+ receiverId String 
+ body String
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ chat Chat @relation(fields: [chatId], references: [id])
+ chatId String
+}
+
+ model Chat {
+ id String @id @default(auto()) @map("_id") @db.ObjectId
+ sender User @relation("SenderChats", fields: [senderId], references: [id])
+ senderId String
+ receiver User @relation("ReceiverChats", fields: [receiverId], references: [id])
+ receiverId String
+ message Message @relation(fields: [messageId], references: [id])
+ messageId String
+ messages ChatMessages[]
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
 }

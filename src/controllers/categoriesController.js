@@ -1,19 +1,20 @@
 const prisma = require("../configs/databaseConfig");
 
 require("dotenv").config();
-const {
-  categoryUpdateCreate,
-} = require("../middlewares/validation.message.middleware");
+const { validateCategory } = require("../validations/category");
 
 exports.addcategory = async (req, res) => {
   try {
-    const validateCategory = await categoryUpdateCreate(req, res);
+    const { error, value } = validateCategory(req.body);
 
-    if (validateCategory.status !== 200) {
-      return res.status(validateCategory.status).json(validateCategory.data);
+    if (error) {
+      return res
+        .status(400)
+        .json({ message: `Validation error: ${error.details[0].message}` });
     }
 
-    const { name } = validateCategory.data;
+    const { name } = value;
+
     const Categoryy = await prisma.category.create({
       data: {
         name,
@@ -25,6 +26,50 @@ exports.addcategory = async (req, res) => {
       data: Categoryy,
     });
   } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.updatecategory = async (req, res) => {
+  try {
+    const { error, value } = validateCategory(req.body);
+
+    if (error) {
+      return res
+        .status(400)
+        .json({ message: `Validation error: ${error.details[0].message}` });
+    }
+
+    const { name } = value;
+
+    const isCategory = await prisma.category.findUnique({
+      where: {
+        id: req.params.id,
+      },
+    });
+
+    if (!isCategory) {
+      return res.status(404).json({ message: "Category Not Found" });
+    }
+
+    const updateCategory = await prisma.category.update({
+      where: {
+        id: req.params.id,
+      },
+      data: {
+        name,
+      },
+    });
+
+    return res
+      .status(201)
+      .json({ message: "Category Updated Successfully", data: updateCategory });
+  } catch (error) {
+    if (error.code === "P2023") {
+      return res.status(404).json({ message: "Invalid Id format" });
+    }
+
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
   }
@@ -60,25 +105,9 @@ exports.deletecategory = async (req, res) => {
   }
 };
 
-exports.updatecategory = async (req, res) => {
-  const validateCategory = await categoryUpdateCreate(req, res);
-
-  if (validateCategory.status !== 200) {
-    return res.status(validateCategory.status).json(validateCategory.data);
-  }
-
-  const { name } = validateCategory.data;
-
-  const categoryId = req.params.id;
+exports.SpecificCategory = async (req, res) => {
   try {
-    if (validateCategory.status !== 200) {
-      return res.status(validateCategory.status).json(validateCategory.data);
-    }
-
-    const { name } = validateCategory.data;
-
     const categoryId = req.params.id;
-
     const isCategory = await prisma.category.findUnique({
       where: {
         id: categoryId,
@@ -89,58 +118,30 @@ exports.updatecategory = async (req, res) => {
       return res.status(404).json({ message: "Category Not Found" });
     }
 
-    const updateCategory = await prisma.category.update({
-      where: {
-        id: categoryId,
-      },
-      data: {
-        name,
-      },
-    });
-
     return res
-      .status(201)
-      .json({ message: "Category Updated Successfully", data: updateCategory });
+      .status(200)
+      .json({ message: "Category Fetched Successfully", data: isCategory });
   } catch (error) {
     if (error.code === "P2023") {
       return res.status(404).json({ message: "Invalid Id format" });
     }
-
-    console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
+    console.log(error);
   }
-};
-
-exports.SpecificCategory = async (req, res) => {
-  const categoryId = req.params.id;
-  const isCategory = await prisma.category.findUnique({
-    where: {
-      id: categoryId,
-    },
-  });
-
-  if (!isCategory) {
-    return res.status(404).json({ message: "Category Not Found" });
-  }
-
-  return res
-    .status(200)
-    .json({ message: "Category Fetched Successfully", data: isCategory });
 };
 
 exports.allcategories = async (req, res) => {
-  const categoryId = req.params.id;
-  const isCategory = await prisma.category.findMany({
-    where: {
-      id: categoryId,
-    },
-  });
+  try {
+    const isCategory = await prisma.category.findMany();
 
-  if (!isCategory) {
-    return res.status(404).json({ message: "Category Not Found" });
+    if (!isCategory) {
+      return res.status(404).json({ message: "Category Not Found" });
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Message Fetched Successfully", data: isCategory });
+  } catch (error) {
+    console.log(error);
+    console.log("Internal Server Error ");
   }
-
-  return res
-    .status(200)
-    .json({ message: "Message Fetched Successfully", data: isCategory });
 };

@@ -6,11 +6,15 @@ const app = express();
 const port = process.env.PORT;
 app.use(express.json());
 const users = require("./src/routes/users");
-// const socket = require("./src/controllers/socket5");
+const socket = require("./src/controllers/socket5");
 const mail = require("./src/services/mailSender.service");
 
 //app.use("/users", users);
 app.use(route);
+
+app.get("/ping", async (req, res) => {
+  res.status(200).json({ message: "Connected" });
+});
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);

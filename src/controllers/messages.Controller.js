@@ -1,8 +1,5 @@
 const prisma = require("../configs/databaseConfig");
-const {
-  messageValidation,
-  messageupdateValidation,
-} = require("../middlewares/validation.message.middleware");
+const { messageScheema, messageUpdate } = require("../validations/message");
 
 const express = require("express");
 const app = express();
@@ -19,13 +16,34 @@ io.on("connection", (socket) => {
 
 exports.addMessage = async (req, res) => {
   try {
-    const validateMessage = await messageValidation(req, res);
+    const { error, value } = messageScheema(req.body);
 
-    if (validateMessage.status !== 200) {
-      return res.status(validateMessage.status).json(validateMessage.data);
+    if (error) {
+      return res
+        .status(400)
+        .json({ message: `Validation error: ${error.details[0].message}` });
     }
+
     const { title, body, address, longitude, latitude, userId, categoryId } =
-      validateMessage.data;
+      value;
+
+    const isUser = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    const isCategory = await prisma.category.findUnique({
+      where: {
+        id: categoryId,
+      },
+    });
+
+    if (!isCategory) {
+      return res.status(404).json({ message: "Message Category not found" });
+    }
+    if (!isUser) {
+      return res.status(404).json({ message: "Message User not found" });
+    }
 
     const messagee = await prisma.message.create({
       data: {
@@ -39,12 +57,18 @@ exports.addMessage = async (req, res) => {
       },
     });
 
-    io.emit("newMessage", messagee);
     return res.status(201).json({
       message: "Message created successfully",
       data: messagee,
     });
   } catch (error) {
+    if (error.code === "P2023") {
+      if (error.message.includes("User")) {
+        return res.status(404).json({ message: "Invalid User Id format" });
+      } else if (error.message.includes("Category")) {
+        return res.status(404).json({ message: "Invalid Category Id format" });
+      }
+    }
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
   }
@@ -84,35 +108,62 @@ exports.deleteMessage = async (req, res) => {
 
 exports.updateMessage = async (req, res) => {
   try {
-    const updateValidateMessage = await messageupdateValidation(req, res);
-    if (updateValidateMessage.status !== 200) {
-      return res
-        .status(updateValidateMessage.status)
-        .json(updateValidateMessage.data);
-    }
-    const { title, body, address, longitude, latitude, categoryId } =
-      updateValidateMessage.data;
+    const { error, value } = messageUpdate(req.body);
 
-    const updateMessage = await prisma.message.update({
+    if (error) {
+      return res
+        .status(400)
+        .json({ message: `Validation error: ${error.details[0].message}` });
+    }
+
+    const { title, body, address, longitude, latitude, categoryId } = value;
+
+    const isMessage = await prisma.message.findUnique({
       where: {
         id: req.params.id,
       },
-      data: {
-        title: req.body.title,
-        body: req.body.body,
-        address: req.body.address,
-        longitude: req.body.longitude,
-        latitude: req.body.latitude,
-        categoryId: req.body.categoryId,
-      },
     });
+    if (!isMessage) {
+      return res.status(404).json({ message: "Message Not Found" });
+    }
 
-    io.emit("messageUpdated", updateMessage);
+    if (categoryId !== undefined) {
+      const isCategory = await prisma.category.findUnique({
+        where: {
+          id: categoryId,
+        },
+      });
 
-    return res
-      .status(201)
-      .json({ message: "Message Updated Successfully", data: updateMessage });
+      if (!isCategory) {
+        return res.status(404).json({ message: "Message Category not found" });
+      }
+
+      const updateMessage = await prisma.message.update({
+        where: {
+          id: req.params.id,
+        },
+        data: {
+          title: value?.title,
+          body: value?.body,
+          address: value?.address,
+          longitude: value?.longitude,
+          latitude: value?.latitude,
+          categoryId: value?.categoryId,
+        },
+      });
+
+      return res
+        .status(201)
+        .json({ message: "Message Updated Successfully", data: updateMessage });
+    }
   } catch (error) {
+    if (error.code === "P2023") {
+      if (error.message.includes("User")) {
+        return res.status(404).json({ message: "Invalid User Id format" });
+      } else if (error.message.includes("Category")) {
+        return res.status(404).json({ message: "Invalid Category Id format" });
+      }
+    }
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
   }
@@ -148,12 +199,7 @@ exports.SpecificMessage = async (req, res) => {
 
 exports.allMessages = async (req, res) => {
   try {
-    const messageId = req.params.id;
-    const isMessage = await prisma.message.findMany({
-      where: {
-        id: messageId,
-      },
-    });
+    const isMessage = await prisma.message.findMany();
 
     if (!isMessage) {
       return res.status(404).json({ message: "Message Not Found" });
