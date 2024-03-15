@@ -1,0 +1,35 @@
+search a specific chat ( get by id ) ... e.g give params of sender (bcz we are receiver)
+add original users in the chat ... (connection of one id with the other) 
+Give chat id and get the chatmessages ...
+get all the senders who sent the messsage... (other are senders)
+
+get connection bond with id 
+
+
+
+
+list view:
+get closest message from the distance radius 
+
+
+user: 
+Member Since 
+send email on registration 
+
+Messages:
+search specific word of messages 
+default range of seeing messages from current place
+
+
+Category: 
+search Specific by giving category name 
+
+
+notification:
+send notification on the success of message
+
+
+
+
+
+ 
