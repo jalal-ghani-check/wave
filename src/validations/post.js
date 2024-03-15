@@ -1,7 +1,7 @@
 const Joi = require("joi");
 
-function messageScheema(user) {
-  const messageSchema = Joi.object({
+function postScheema(user) {
+  const postSchema = Joi.object({
     title: Joi.string().min(3).max(30).required(),
     body: Joi.string().min(3).max(200).required(),
     longitude: Joi.number().required(),
@@ -11,12 +11,12 @@ function messageScheema(user) {
     categoryId: Joi.string().required(),
   });
 
-  const { error, value } = messageSchema.validate(user);
+  const { error, value } = postSchema.validate(user);
   return { error, value };
 }
 
-function messageUpdate(user) {
-  const messageUpdateSchema = Joi.object({
+function postUpdate(user) {
+  const postUpdateSchema = Joi.object({
     title: Joi.string().min(3).max(30).optional(),
     body: Joi.string().min(3).max(200).optional(),
     longitude: Joi.number().optional(),
@@ -26,11 +26,11 @@ function messageUpdate(user) {
     categoryId: Joi.string().allow(null).optional(),
   });
 
-  const { error, value } = messageUpdateSchema.validate(user);
+  const { error, value } = postUpdateSchema.validate(user);
   return { error, value };
 }
 
 module.exports = {
-  messageScheema,
-  messageUpdate,
+  postScheema,
+  postUpdate,
 };

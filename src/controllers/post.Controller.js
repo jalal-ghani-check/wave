@@ -1,5 +1,5 @@
 const prisma = require("../configs/databaseConfig");
-const { messageScheema, messageUpdate } = require("../validations/message");
+const { postScheema, postUpdate } = require("../validations/post");
 
 const express = require("express");
 const app = express();
@@ -14,9 +14,9 @@ io.on("connection", (socket) => {
   console.log("A client connected");
 });
 
-exports.addMessage = async (req, res) => {
+exports.addPost = async (req, res) => {
   try {
-    const { error, value } = messageScheema(req.body);
+    const { error, value } = postScheema(req.body);
 
     if (error) {
       return res
@@ -39,13 +39,13 @@ exports.addMessage = async (req, res) => {
     });
 
     if (!isCategory) {
-      return res.status(404).json({ message: "Message Category not found" });
+      return res.status(404).json({ message: "message Category not found" });
     }
     if (!isUser) {
-      return res.status(404).json({ message: "Message User not found" });
+      return res.status(404).json({ message: "message User not found" });
     }
 
-    const messagee = await prisma.message.create({
+    const poste = await prisma.post.create({
       data: {
         title,
         body,
@@ -58,12 +58,12 @@ exports.addMessage = async (req, res) => {
     });
 
     return res.status(201).json({
-      message: "Message created successfully",
-      data: messagee,
+      message: "Post created successfully",
+      data: poste,
     });
   } catch (error) {
     if (error.code === "P2023") {
-      if (error.message.includes("User")) {
+      if (error.post.includes("User")) {
         return res.status(404).json({ message: "Invalid User Id format" });
       } else if (error.message.includes("Category")) {
         return res.status(404).json({ message: "Invalid Category Id format" });
@@ -74,29 +74,29 @@ exports.addMessage = async (req, res) => {
   }
 };
 
-exports.deleteMessage = async (req, res) => {
+exports.deletePost = async (req, res) => {
   try {
-    const messageId = req.params.id; // contain message id
+    const postId = req.params.id; // contain post id
 
-    const isMessage = await prisma.message.findUnique({
+    const isPost = await prisma.post.findUnique({
       where: {
-        id: messageId, // contain message data
+        id: postId, // contain post data
       },
     });
 
-    if (!isMessage) {
-      return res.status(404).json({ message: "Message Not Found" });
+    if (!isPost) {
+      return res.status(404).json({ message: "Post Not Found" });
     }
 
-    await prisma.message.delete({
+    await prisma.post.delete({
       where: {
-        id: messageId,
+        id: postId,
       },
     });
 
-    io.emit("deleteMessage", messageId);
+    io.emit("deletePost", postId);
 
-    return res.status(200).json({ message: "Message Deleted Successfully" });
+    return res.status(200).json({ message: "Post Deleted Successfully" });
   } catch (error) {
     if (error.code === "P2023") {
       return res.status(404).json({ message: "Invalid Id format" });
@@ -106,9 +106,9 @@ exports.deleteMessage = async (req, res) => {
   }
 };
 
-exports.updateMessage = async (req, res) => {
+exports.updatePost = async (req, res) => {
   try {
-    const { error, value } = messageUpdate(req.body);
+    const { error, value } = postUpdate(req.body);
 
     if (error) {
       return res
@@ -118,13 +118,13 @@ exports.updateMessage = async (req, res) => {
 
     const { title, body, address, longitude, latitude, categoryId } = value;
 
-    const isMessage = await prisma.message.findUnique({
+    const isPost = await prisma.post.findUnique({
       where: {
         id: req.params.id,
       },
     });
-    if (!isMessage) {
-      return res.status(404).json({ message: "Message Not Found" });
+    if (!isPost) {
+      return res.status(404).json({ message: "Post Not Found" });
     }
 
     if (categoryId !== undefined) {
@@ -135,10 +135,10 @@ exports.updateMessage = async (req, res) => {
       });
 
       if (!isCategory) {
-        return res.status(404).json({ message: "Message Category not found" });
+        return res.status(404).json({ message: "Post Category not found" });
       }
 
-      const updateMessage = await prisma.message.update({
+      const updatePost = await prisma.post.update({
         where: {
           id: req.params.id,
         },
@@ -154,7 +154,7 @@ exports.updateMessage = async (req, res) => {
 
       return res
         .status(201)
-        .json({ message: "Message Updated Successfully", data: updateMessage });
+        .json({ message: "Post Updated Successfully", data: updatePost });
     }
   } catch (error) {
     if (error.code === "P2023") {
@@ -169,22 +169,22 @@ exports.updateMessage = async (req, res) => {
   }
 };
 
-exports.SpecificMessage = async (req, res) => {
+exports.SpecificPost = async (req, res) => {
   try {
-    const messageId = req.params.id;
-    const isMessage = await prisma.message.findUnique({
+    const postId = req.params.id;
+    const isPost = await prisma.post.findUnique({
       where: {
-        id: messageId,
+        id: postId,
       },
     });
 
-    if (!isMessage) {
-      return res.status(404).json({ message: "Message Not Found" });
+    if (!isPost) {
+      return res.status(404).json({ message: "Post Not Found" });
     }
 
     return res
       .status(200)
-      .json({ message: "Message Fetched Successfully", data: isMessage });
+      .json({ message: "Post Fetched Successfully", data: isPost });
   } catch (error) {
     if (error.code === "P2023") {
       return res
@@ -197,17 +197,17 @@ exports.SpecificMessage = async (req, res) => {
   }
 };
 
-exports.allMessages = async (req, res) => {
+exports.allPosts = async (req, res) => {
   try {
-    const isMessage = await prisma.message.findMany();
+    const isPost = await prisma.post.findMany();
 
-    if (!isMessage) {
-      return res.status(404).json({ message: "Message Not Found" });
+    if (!isPost) {
+      return res.status(404).json({ message: "Post Not Found" });
     }
 
     return res
       .status(200)
-      .json({ message: "Message Fetched Successfully", data: isMessage });
+      .json({ message: "Post Fetched Successfully", data: isPost });
   } catch (error) {
     if (error.code === "P2023") {
       return res.status(404).json({ message: "Invalid Id format" });
@@ -217,21 +217,21 @@ exports.allMessages = async (req, res) => {
   }
 };
 
-exports.getMessagesByUserId = async (req, res) => {
+exports.getPostsByUserId = async (req, res) => {
   try {
-    const messages = await prisma.message.findMany({
+    const posts = await prisma.post.findMany({
       where: {
         userId: req.params.id,
       },
     });
-    if (messages.length === 0) {
+    if (posts.length === 0) {
       return res
         .status(404)
-        .json({ message: "No messages found for the specified User" });
+        .json({ message: "No posts found for the specified User" });
     }
     return res
       .status(200)
-      .json({ message: "Message Fetched Successfully", data: messages });
+      .json({ message: "Post Fetched Successfully", data: posts });
   } catch (error) {
     if (error.code === "P2023") {
       return res.status(404).json({ message: "Invalid Id format" });
@@ -241,22 +241,22 @@ exports.getMessagesByUserId = async (req, res) => {
   }
 };
 
-exports.getMessagesByCategoryId = async (req, res) => {
+exports.getPostsByCategoryId = async (req, res) => {
   try {
     const categoryId = req.params.id;
-    const messages = await prisma.message.findMany({
+    const posts = await prisma.post.findMany({
       where: {
         categoryId: categoryId,
       },
     });
-    if (messages.length === 0) {
+    if (posts.length === 0) {
       return res
         .status(404)
-        .json({ message: "No messages found for the specified category" });
+        .json({ message: "No posts found for the specified category" });
     }
     return res
       .status(200)
-      .json({ message: "Message Fetched Successfully", data: messages });
+      .json({ message: "Post Fetched Successfully", data: posts });
   } catch (error) {
     if (error.code === "P2023") {
       return res.status(404).json({ message: "Invalid Id format" });
@@ -265,39 +265,3 @@ exports.getMessagesByCategoryId = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
-// exports.replyMessage = async (req, res) => {
-//   try {
-//     const parentId = req.params.id;
-//     const reply = req.body;
-
-//     const isParent = await prisma.message.findUnique({
-//       where: {
-//         id: parentId,
-//       },
-//     });
-
-//     if (!isParent) {
-//       return res
-//         .status(404)
-//         .json({ message: "No messages found for the specified category" });
-//     }
-
-//     const messageReply = await prisma.message.create({
-//       data: {
-//         parentId,
-//         reply,
-//       },
-//     });
-
-//     io.emit("replyMessage", messageReply);
-
-//     return res.status(201).json({
-//       message: "Reply added successfully",
-//       data: reply,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).json({ message: "Internal server error" });
-//   }
-// };
