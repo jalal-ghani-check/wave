@@ -6,10 +6,8 @@ const app = express();
 const port = process.env.PORT;
 app.use(express.json());
 const users = require("./src/routes/users");
-const socket = require("./src/controllers/socket554");
+const socket = require("./src/controllers/socket.Controller");
 const mail = require("./src/services/mailSender.service");
-
-//app.use("/users", users);
 app.use(route);
 
 app.get("/ping", async (req, res) => {

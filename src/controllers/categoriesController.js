@@ -145,3 +145,27 @@ exports.allcategories = async (req, res) => {
     console.log("Internal Server Error ");
   }
 };
+
+exports.SearchCategory = async (req, res) => {
+  try {
+    const categorySearch = req.body.search;
+    const isCategory = await prisma.category.findMany({
+      where: {
+        name: {
+          contains: categorySearch,
+          mode: "insensitive",
+        },
+      },
+    });
+
+    if (!isCategory) {
+      return res.status(404).json({ message: "Category Not Found" });
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Category Fetched Successfully", data: isCategory });
+  } catch (error) {
+    console.log(error);
+  }
+};

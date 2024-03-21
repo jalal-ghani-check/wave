@@ -8,7 +8,6 @@ function validateUserSignUp(user) {
       .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.*[a-z]).*$/)
       .message("please enter correct password")
       .required(),
-
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
     dateOfBirth: Joi.date().required(),
@@ -19,7 +18,6 @@ function validateUserSignUp(user) {
     phoneNumber: Joi.string().required(),
     profile_image: Joi.string(),
   });
-
   const { error, value } = usersignUpSchema.validate(user);
   return { error, value };
 }

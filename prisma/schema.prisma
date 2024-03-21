@@ -28,8 +28,7 @@ model User {
   chatsAsSender ChatMessages[] @relation(name: "Sender")
   chatsAsReceiver ChatMessages[] @relation(name: "Receiver") 
   senderChats Chat[] @relation("SenderChats")
-  receiverChats Chat[] @relation("ReceiverChats")
- 
+  receiverChats Chat[] @relation("ReceiverChats")  
 }
 
 model Admin {
@@ -63,6 +62,7 @@ model Post {
   userId String   
   category Category @relation(fields: [categoryId], references: [id])
   categoryId String
+  categoryName String
   title String
   body String
   latitude Float    @default(00.000)
@@ -83,20 +83,7 @@ model Otp {
   updatedAt DateTime @updatedAt
 }
 
-model ChatMessages{
- id String @id @default(auto()) @map("_id") @db.ObjectId
- sender User @relation(name:"Sender", fields: [senderId], references: [id])
- senderId String
- receiver User @relation(name:"Receiver",fields: [receiverId], references: [id])
- receiverId String 
- body String
- createdAt DateTime @default(now())
- updatedAt DateTime @updatedAt
- chat Chat @relation(fields: [chatId], references: [id])
- chatId String
-}
-
- model Chat {
+model Chat {
  id String @id @default(auto()) @map("_id") @db.ObjectId
  sender User @relation("SenderChats", fields: [senderId], references: [id])
  senderId String
@@ -111,6 +98,28 @@ model ChatMessages{
  senderLastName String
  receiverFirstName String
  receiverLastName String
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+}
+
+model ChatMessages {
+ id String @id @default(auto()) @map("_id") @db.ObjectId
+ sender User @relation(name:"Sender", fields: [senderId], references: [id])
+ senderId String
+ receiver User @relation(name:"Receiver",fields: [receiverId], references: [id])
+ receiverId String 
+ body String
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ chat Chat @relation(fields: [chatId], references: [id])
+ chatId String 
+}
+
+model Notification {
+ id String @id @default(auto()) @map("_id") @db.ObjectId
+ title String
+ content String
+ read Boolean @default(false)
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
 }

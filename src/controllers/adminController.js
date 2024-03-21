@@ -4,7 +4,6 @@ const Jwt = require("jsonwebtoken");
 
 const {
   validateAdminSignUp,
-  validateAdminUpdate,
   validateForgetPassword,
   validateUpdatePassword,
   validateLogin,
@@ -55,11 +54,10 @@ exports.signUp = async (req, res) => {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
   }
-}; // Done with it
+};
 
 exports.getTokenData = async (req, res) => {
   const adminId = req.admin.id;
-
   const admin = await prisma.admin.findUnique({
     where: {
       id: adminId,
@@ -67,7 +65,7 @@ exports.getTokenData = async (req, res) => {
   });
   delete admin.password;
   res.json({ Admin: admin });
-}; // Done with it
+};
 
 exports.logIn = async (req, res) => {
   const { error, value } = validateLogin(req.body);
@@ -79,13 +77,13 @@ exports.logIn = async (req, res) => {
 
   const admin = await prisma.admin.findUnique({
     where: {
-      email: req.body.email,
+      email: value.email,
     },
   });
 
   if (admin) {
     const isPasswordMatch = await bcrypt.compare(
-      req.body.password,
+      value.password,
       admin.password
     );
 
@@ -124,35 +122,34 @@ exports.logIn = async (req, res) => {
 exports.getAllAdmin = async (req, res) => {
   try {
     const getAdmin = await prisma.admin.findMany();
-
     const hidePassword = getAdmin.map((admin) => {
       const { password, ...hidePassword } = admin;
       return hidePassword;
     });
-
     res
       .status(200)
       .json({ message: "Successfully Fetched admin", admin: hidePassword });
   } catch (error) {
     console.error(error);
   }
-}; // Done with it
+};
 
 exports.getOne = async (req, res) => {
   try {
-    const isId = await prisma.admin.findUnique({
+    const isAdmin = await prisma.admin.findUnique({
       where: {
         id: req.params.id,
       },
     });
 
-    if (!isId) {
+    if (!isAdmin) {
       return res.status(400).json({ message: "Admin not found" });
     }
     delete isId.password;
-    res
-      .status(200)
-      .json({ message: "Successfully Displayed data of admin", admin: isId });
+    res.status(200).json({
+      message: "Successfully Displayed data of admin",
+      admin: isAdmin,
+    });
   } catch (error) {
     if (error.code === "P2023") {
       return res.status(404).json({ message: "Invalid Id format" });
@@ -160,114 +157,7 @@ exports.getOne = async (req, res) => {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
   }
-}; /// Done with it
-
-exports.deleteAdmin = async (req, res) => {
-  try {
-    const adminId = req.params.id;
-
-    const existingId = await prisma.admin.findUnique({
-      where: {
-        id: adminId,
-      },
-    });
-
-    if (!existingId) {
-      return res.status(400).json({ message: "Admin not found" });
-    }
-
-    const messages = await prisma.message.findMany({
-      where: {
-        id: adminId,
-      },
-    });
-
-    await prisma.message.deleteMany({
-      where: {
-        id: adminId,
-      },
-    });
-
-    await prisma.admin.delete({
-      where: {
-        id: adminId,
-      },
-    });
-
-    return res.status(200).json({ message: "Admin deleted Successfully" });
-  } catch (error) {
-    if (error.code === "P2023") {
-      return res.status(404).json({ message: "Invalid Id format" });
-    }
-    console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-}; // Done with it
-
-exports.updateAdmin = async (req, res) => {
-  try {
-    const { error, value } = validateAdminUpdate(req.body);
-
-    if (error) {
-      return res
-        .status(400)
-        .json({ message: `Validation error: ${error.details[0].message}` });
-    }
-
-    const existingAdmin = await prisma.admin.findUnique({
-      where: {
-        id: req.params.id,
-      },
-    });
-
-    if (!existingAdmin) {
-      return res.status(400).json({ message: "Admin not found" });
-    }
-
-    if (value.email !== undefined && value.email !== existingAdmin.email) {
-      const adminWithEmail = await prisma.admin.findUnique({
-        where: {
-          email: value.email,
-        },
-      });
-
-      if (adminWithEmail) {
-        return res.status(400).json({ message: "Email Already Registered" });
-      }
-    } else {
-      email = existingAdmin.email;
-    }
-
-    const updateData = await prisma.admin.update({
-      where: {
-        id: req.params.id,
-      },
-      data: {
-        firstName: value?.firstName,
-        lastName: value?.lastName,
-        email: value?.email,
-        dateOfBirth: value?.dateOfBirth,
-        address: value?.address,
-        city: value?.city,
-        country: value?.country,
-        postalCode: value?.postalCode,
-        phoneNumber: value?.phoneNumber,
-        profile_image: value?.profile_image,
-      },
-    });
-    // delete updateData.password;
-    return res.status(201).json({
-      message: "Admin updated Successfully",
-      data: updateData,
-    });
-  } catch (error) {
-    if (error.code === "P2023") {
-      return res.status(400).json({ message: "Invalid admin ID format" });
-    }
-    console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-}; /// Done with it
+};
 
 exports.forgetPassword = async (req, res) => {
   try {
@@ -280,7 +170,6 @@ exports.forgetPassword = async (req, res) => {
     }
 
     const { newPassword, confirmNewPassword, otp } = value;
-
     const existingAdmin = await prisma.admin.findUnique({
       where: {
         id: req.params.id,
@@ -289,17 +178,13 @@ exports.forgetPassword = async (req, res) => {
     if (!existingAdmin) {
       return res.status(400).json({ message: "Admin Not Exists  ." });
     }
-
     if (newPassword === confirmNewPassword) {
       console.log("Password are same");
       const saltRound = process.env.saltRounds;
       var hashPassword = await bcrypt.hash(newPassword, parseInt(saltRound));
-
-      console.log(hashPassword);
     } else {
       return res.status(400).json({ message: "Passwords must be the same" });
     }
-
     const isOtp = await prisma.otp.findFirst({
       where: {
         receiver_id: req.params.id,
@@ -315,7 +200,6 @@ exports.forgetPassword = async (req, res) => {
         .json({ message: "No OTP registered for this admin" });
     }
 
-    // Check if OTP matches the provided OTP
     if (isOtp.otp !== otp) {
       return res.status(404).json({ message: "OTP does not match" });
     }
@@ -368,12 +252,11 @@ exports.forgetPassword = async (req, res) => {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
   }
-}; /// Done with it
+};
 
 exports.updatePassword = async (req, res) => {
   try {
     const { error, value } = validateUpdatePassword(req.body);
-
     if (error) {
       return res
         .status(400)
@@ -381,14 +264,13 @@ exports.updatePassword = async (req, res) => {
     }
 
     const { oldpassword, newpassword, confirmPassword, otp } = value;
-
     const existingAdmin = await prisma.admin.findUnique({
       where: {
         id: req.params.id,
       },
     });
     if (!existingAdmin) {
-      return res.status(400).json({ message: "Admin Not Exists  " });
+      return res.status(400).json({ message: "Admin Not Exists" });
     }
 
     const isPassword = await bcrypt.compare(
@@ -399,11 +281,6 @@ exports.updatePassword = async (req, res) => {
     if (!isPassword) {
       return res.status(400).json({ message: "Incorrect old password" });
     }
-
-    console.log(oldpassword);
-
-    console.log(newpassword);
-
     if (oldpassword === newpassword) {
       return res
         .status(400)
@@ -421,18 +298,16 @@ exports.updatePassword = async (req, res) => {
         receiver_id: req.params.id,
       },
       orderBy: {
-        updatedAt: "desc", // Ordering by updatedAt in descending order
+        updatedAt: "desc",
       },
     });
 
-    // Check if OTP record exists for the Admin
     if (!isOtp) {
       return res
         .status(404)
         .json({ message: "No OTP registered for this admin" });
     }
 
-    // Check if OTP matches the provided OTP
     if (isOtp.otp !== otp) {
       return res.status(404).json({ message: "OTP does not match" });
     }
@@ -477,7 +352,6 @@ exports.updatePassword = async (req, res) => {
         password: newPass,
       },
     });
-
     delete updatedPassword.password;
 
     return res
@@ -487,7 +361,6 @@ exports.updatePassword = async (req, res) => {
     if (error.code === "P2023") {
       return res.status(400).json({ message: "Invalid admin ID format" });
     }
-
     console.error(error);
   }
 };

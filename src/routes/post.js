@@ -11,7 +11,6 @@ router.get("/:id", post.SpecificPost);
 router.post("/create", post.addPost);
 router.put("/update/:id", post.updatePost);
 router.delete("/delete/:id", post.deletePost);
-
-//router.post("/reply/:id", post.replypost);
+router.post("/get-posts", post.SearchPosts);
 
 module.exports = router;

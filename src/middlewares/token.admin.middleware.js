@@ -16,7 +16,6 @@ function middlewareToken(req, res, next) {
         return res.status(403).json({ message: "Forbidden", err });
       }
     }
-
     req.admin = admin;
     next();
   });

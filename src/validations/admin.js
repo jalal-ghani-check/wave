@@ -8,7 +8,6 @@ function validateAdminSignUp(user) {
       .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.*[a-z]).*$/)
       .message("please enter correct password")
       .required(),
-
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
     dateOfBirth: Joi.date().required(),
@@ -19,28 +18,7 @@ function validateAdminSignUp(user) {
     phoneNumber: Joi.string().required(),
     profile_image: Joi.string(),
   });
-
   const { error, value } = adminsignUpSchema.validate(user);
-  return { error, value };
-}
-
-function validateAdminUpdate(user) {
-  const adminUpdateSchema = Joi.object({
-    email: Joi.string().email().allow("").optional(),
-    password: Joi.string().optional(),
-
-    firstName: Joi.string().optional(),
-    lastName: Joi.string().optional(),
-    dateOfBirth: Joi.date().optional(),
-    address: Joi.string().optional(),
-    city: Joi.string().optional(),
-    country: Joi.string().optional(),
-    postalCode: Joi.string().optional(),
-    phoneNumber: Joi.string().optional(),
-    profile_image: Joi.string().optional(),
-  });
-
-  const { error, value } = adminUpdateSchema.validate(user);
   return { error, value };
 }
 
@@ -56,7 +34,6 @@ function validateForgetPassword(user) {
       .required(),
     otp: Joi.number().integer().min(1000).max(9999).required(),
   });
-
   const { error, value } = forgetpasswordSchema.validate(user);
   return { error, value };
 }
@@ -77,7 +54,6 @@ function validateUpdatePassword(user) {
       .required(),
     otp: Joi.number().integer().min(1000).max(9999).required(),
   });
-
   const { error, value } = updatePasswordSchema.validate(user);
   return { error, value };
 }
@@ -98,7 +74,6 @@ function validateLogin(user) {
 
 module.exports = {
   validateAdminSignUp,
-  validateAdminUpdate,
   validateForgetPassword,
   validateUpdatePassword,
   validateLogin,

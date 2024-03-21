@@ -7,7 +7,6 @@ require("dotenv").config();
 exports.createChat = async (req, res) => {
   try {
     const { user1Id, user2Id, postId } = req.body;
-
     const user1 = await prisma.user.findUnique({
       where: {
         id: user1Id,
@@ -16,7 +15,6 @@ exports.createChat = async (req, res) => {
     if (!user1) {
       res.status(400).json("No user1 exist with this id ");
     }
-
     const user2 = await prisma.user.findUnique({
       where: {
         id: user2Id,
@@ -36,7 +34,6 @@ exports.createChat = async (req, res) => {
     if (!post) {
       res.status(400).json("No post exist with this id ");
     }
-
     const senderProfileImage = user1.profile_image;
     const senderFirstName = user1.firstName;
     const senderLastName = user1.lastName;
@@ -72,7 +69,6 @@ exports.createChat = async (req, res) => {
       console.log("Invalid Id format");
       return res.status(400).json("Invalid Id format");
     }
-    //console.log(error);
   }
 };
 
@@ -85,8 +81,6 @@ exports.getUserContactList = async (req, res) => {
         .status(400)
         .json({ error: "Invalid request. Please provide a userId." });
     }
-
-    // Find all chats where the provided user is either the sender or the receiver
     const chats = await prisma.chat.findMany({
       where: {
         OR: [{ senderId: userId }, { receiverId: userId }],
@@ -97,15 +91,10 @@ exports.getUserContactList = async (req, res) => {
       },
     });
 
-    // Extract unique IDs from the chats
     const uniqueIds = [
       ...new Set(chats.flatMap((chat) => [chat.receiverId, chat.senderId])),
     ];
-
-    // Filter out the provided user ID from the unique IDs
     const filteredIds = uniqueIds.filter((id) => id !== userId);
-
-    // Return the response
     res.json({ userIds: filteredIds });
   } catch (error) {
     console.log(error);

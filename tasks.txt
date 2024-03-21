@@ -1,28 +1,21 @@
 
-
-user: 
-Member Since 
-send email on registration 
+user:  
+send email on registration  (Pending)
 
 Messages:
-search specific word of messages 
-default range of seeing messages from current place
+default range of seeing messages from current place (pending)
 
+
+
+
+Messages:
+ 
 
 Category: 
-search Specific by giving category name 
-
+ 
 
 notification:
 send notification on the success of message
-
-
-message:  
-edit message 
-
-
-
-
 
 
  

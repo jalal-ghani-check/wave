@@ -14,7 +14,7 @@ router.get("/:id", users.getOne);
 router.delete("/:id", users.deleteUser);
 router.put("/:id", users.updateUser);
 router.put("/forget-password/:id", users.forgetPassword);
-
 router.put("/update-password/:id", users.updatePassword);
+router.post("/filters", users.filterView);
 
 module.exports = router;

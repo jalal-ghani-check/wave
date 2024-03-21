@@ -10,7 +10,6 @@ function postScheema(user) {
     userId: Joi.string().required(),
     categoryId: Joi.string().required(),
   });
-
   const { error, value } = postSchema.validate(user);
   return { error, value };
 }
@@ -25,7 +24,6 @@ function postUpdate(user) {
     // userId: Joi.string().allow(null).optional(),
     categoryId: Joi.string().allow(null).optional(),
   });
-
   const { error, value } = postUpdateSchema.validate(user);
   return { error, value };
 }
