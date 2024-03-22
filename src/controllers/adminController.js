@@ -42,7 +42,7 @@ exports.signUp = async (req, res) => {
         country: value.country,
         postalCode: value.postalCode,
         phoneNumber: value.phoneNumber,
-        profile_image: value?.profile_image || null,
+        profile_image: value?.profile_image,
       },
     });
     delete newAdmin.password;
@@ -145,7 +145,7 @@ exports.getOne = async (req, res) => {
     if (!isAdmin) {
       return res.status(400).json({ message: "Admin not found" });
     }
-    delete isId.password;
+    delete isAdmin.password;
     res.status(200).json({
       message: "Successfully Displayed data of admin",
       admin: isAdmin,

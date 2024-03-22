@@ -21,10 +21,13 @@ exports.getMessages = async function getChatMessagesByChatId(req, res) {
     }
     return res.status(200).json({ message: chatMessages });
   } catch (error) {
+    if (error.code === "P2023") {
+      return res.status(404).json({ error: "Invalid Chat Id" });
+    }
     console.error("Error fetching chat messages:", error);
     throw error;
   }
-};
+}; // Tested
 
 exports.updateChatMessage = async function getChatMessagesByChatId(req, res) {
   try {
@@ -50,8 +53,11 @@ exports.updateChatMessage = async function getChatMessagesByChatId(req, res) {
     });
     return res.status(200).json({ updatedMessage: newMessage });
   } catch (error) {
+    if (error.code === "P2023") {
+      return res.status(404).json({ error: "Invalid Chat Message Id" });
+    }
     console.error(error);
-    throw error;
+    //throw error;
   }
 };
 
@@ -73,7 +79,9 @@ exports.deleteChatMessage = async function getChatMessagesByChatId(req, res) {
     });
     return res.status(200).json({ message: "Message Deleted Successfully" });
   } catch (error) {
+    if (error.code === "P2023") {
+      return res.status(404).json({ error: "Invalid Chat Message Id" });
+    }
     console.error(error);
-    throw error;
   }
 };

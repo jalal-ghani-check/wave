@@ -1,5 +1,5 @@
 const prisma = require("../configs/databaseConfig");
-const { postScheema, postUpdate } = require("../validations/post");
+const { postScheema, postUpdate, postRadius } = require("../validations/post");
 
 const express = require("express");
 const app = express();
@@ -51,15 +51,11 @@ exports.addPost = async (req, res) => {
     });
   } catch (error) {
     if (error.code === "P2023") {
-      if (error.post.includes("User")) {
-        return res.status(404).json({ message: "Invalid User Id format" });
-      } else if (error.message.includes("Category")) {
-        return res.status(404).json({ message: "Invalid Category Id format" });
-      }
+      return res.status(404).json({ message: "Invalid Id format" });
     }
-    console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
   }
+  console.error(error);
+  return res.status(500).json({ message: "Internal server error" });
 };
 
 exports.deletePost = async (req, res) => {
@@ -73,7 +69,35 @@ exports.deletePost = async (req, res) => {
     if (!isPost) {
       return res.status(404).json({ message: "Post Not Found" });
     }
+    const isChat = await prisma.chat.findMany({
+      where: {
+        postId: postId,
+      },
+    });
+    const chatId = isChat.id;
+    const isChatMessages = await prisma.chatMessages.findMany({
+      where: {
+        chatId: chatId,
+      },
+    });
+
+    await prisma.chatMessages.deleteMany({
+      // delete messages
+      where: {
+        chatId: chatId,
+      },
+    });
+
+    await prisma.chat.deleteMany({
+      // delete Chat
+      where: {
+        postId: postId,
+      },
+    });
+
     await prisma.post.delete({
+      // delete Post
+      // delete post
       where: {
         id: postId,
       },
@@ -112,30 +136,28 @@ exports.updatePost = async (req, res) => {
         },
       });
       if (!isCategory) {
-        return res.status(404).json({ message: "Post Category not found" });
+        return res.status(404).json({ message: "Category not found" });
       }
-      const updatePost = await prisma.post.update({
-        where: {
-          id: req.params.id,
-        },
-        data: {
-          title: value?.title,
-          body: value?.body,
-          address: value?.address,
-          longitude: value?.longitude,
-          latitude: value?.latitude,
-          categoryId: value?.categoryId,
-        },
-      });
-      return res
-        .status(201)
-        .json({ message: "Post Updated Successfully", data: updatePost });
     }
+    const updatePost = await prisma.post.update({
+      where: {
+        id: req.params.id,
+      },
+      data: {
+        title: title,
+        body: body,
+        address: address,
+        longitude: longitude,
+        latitude: latitude,
+        categoryId: categoryId,
+      },
+    });
+    return res
+      .status(201)
+      .json({ message: "Post Updated Successfully", data: updatePost });
   } catch (error) {
     if (error.code === "P2023") {
-      if (error.message.includes("User")) {
-        return res.status(404).json({ message: "Invalid User Id format" });
-      } else if (error.message.includes("Category")) {
+      if (error.message.includes("Category")) {
         return res.status(404).json({ message: "Invalid Category Id format" });
       }
     }
@@ -162,7 +184,7 @@ exports.SpecificPost = async (req, res) => {
     if (error.code === "P2023") {
       return res
         .status(404)
-        .json({ message: "User Id or Category Id has not correct format" });
+        .json({ message: "Post Id has not correct format" });
     }
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
@@ -171,7 +193,26 @@ exports.SpecificPost = async (req, res) => {
 
 exports.allPosts = async (req, res) => {
   try {
-    const isPost = await prisma.post.findMany();
+    const today = new Date();
+
+    today.setDate(today.getDate() - 30);
+
+    const isPost = await prisma.post.findMany({
+      where: {
+        createdAt: {
+          gte: today,
+        },
+      },
+    });
+
+    const isDelete = await prisma.post.deleteMany({
+      where: {
+        createdAt: {
+          lt: today,
+        },
+      },
+    });
+
     if (!isPost) {
       return res.status(404).json({ message: "Post Not Found" });
     }
@@ -179,9 +220,6 @@ exports.allPosts = async (req, res) => {
       .status(200)
       .json({ message: "Post Fetched Successfully", data: isPost });
   } catch (error) {
-    if (error.code === "P2023") {
-      return res.status(404).json({ message: "Invalid Id format" });
-    }
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
   }
@@ -238,7 +276,14 @@ exports.getPostsByCategoryId = async (req, res) => {
 
 exports.specificDistance = async (req, res) => {
   try {
-    const { userLat, userLon, distance } = req.body;
+    const { error, value } = postRadius(req.body);
+    if (error) {
+      return res
+        .status(400)
+        .json({ message: `Validation error: ${error.details[0].message}` });
+    }
+    const { userLat, userLon, distance } = value;
+
     function haversineDistance(lat1, lon1, lat2, lon2) {
       const R = 6371e3; // Earth's radius in meters
       const φ1 = (lat1 * Math.PI) / 180; // φ, λ in radians
@@ -305,5 +350,48 @@ exports.SearchPosts = async (req, res) => {
       .json({ message: "Post  Fetched Successfully", data: isPost });
   } catch (error) {
     console.log(error);
+  }
+};
+
+exports.lastDays = async (req, res) => {
+  try {
+    const days = parseInt(req.params.days);
+    if (isNaN(days) || days <= 0) {
+      return res.status(400).json({ error: "Invalid number of days provided" });
+    }
+    const today = new Date();
+    today.setDate(today.getDate() - days);
+    const posts = await prisma.post.findMany({
+      where: {
+        createdAt: {
+          gte: today,
+        },
+      },
+      include: {
+        category: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    const postsByCategory = {};
+    posts.forEach((post) => {
+      const categoryName = post.category.name;
+      if (!postsByCategory[categoryName]) {
+        postsByCategory[categoryName] = 1;
+      } else {
+        postsByCategory[categoryName]++;
+      }
+    });
+    const response = {
+      postsByCategory: postsByCategory,
+      posts: posts,
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Error fetching posts" });
   }
 };

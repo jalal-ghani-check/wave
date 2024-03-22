@@ -5,7 +5,7 @@ function validateAdminSignUp(user) {
     email: Joi.string().email().required(),
     password: Joi.string()
       .min(8)
-      .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.*[a-z]).*$/)
+      .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*]).*$/)
       .message("please enter correct password")
       .required(),
     firstName: Joi.string().required(),
@@ -16,7 +16,7 @@ function validateAdminSignUp(user) {
     country: Joi.string().required(),
     postalCode: Joi.string().required(),
     phoneNumber: Joi.string().required(),
-    profile_image: Joi.string(),
+    profile_image: Joi.string().optional(),
   });
   const { error, value } = adminsignUpSchema.validate(user);
   return { error, value };
@@ -26,11 +26,11 @@ function validateForgetPassword(user) {
   const forgetpasswordSchema = Joi.object({
     newPassword: Joi.string()
       .min(8)
-      .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.*[a-z]).*$/)
+      .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*]).*$/)
       .required(),
     confirmNewPassword: Joi.string()
       .min(8)
-      .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.*[a-z]).*$/)
+      .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*]).*$/)
       .required(),
     otp: Joi.number().integer().min(1000).max(9999).required(),
   });
@@ -42,15 +42,15 @@ function validateUpdatePassword(user) {
   const updatePasswordSchema = Joi.object({
     oldpassword: Joi.string()
       .min(8)
-      .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.*[a-z]).*$/)
+      .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*]).*$/)
       .required(),
     newpassword: Joi.string()
       .min(8)
-      .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.*[a-z]).*$/)
+      .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*]).*$/)
       .required(),
     confirmPassword: Joi.string()
       .min(8)
-      .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.*[a-z]).*$/)
+      .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*]).*$/)
       .required(),
     otp: Joi.number().integer().min(1000).max(9999).required(),
   });
@@ -63,7 +63,7 @@ function validateLogin(user) {
     email: Joi.string().email().required(),
     password: Joi.string()
       .min(8)
-      .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.*[a-z]).*$/)
+      .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*]).*$/)
       .message("please enter correct password")
       .required(),
   });

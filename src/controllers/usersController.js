@@ -9,6 +9,7 @@ const {
   validateUpdatePassword,
   validateLogin,
 } = require("../validations/users");
+const { start } = require("repl");
 require("dotenv").config();
 
 exports.signUp = async (req, res) => {
@@ -163,16 +164,38 @@ exports.deleteUser = async (req, res) => {
     if (!existingId) {
       return res.status(400).json({ message: "user not found" });
     }
-    const messages = await prisma.message.findMany({
+    const post = await prisma.post.findMany({
       where: {
-        id: userId,
+        userId: userId,
       },
     });
-    await prisma.message.deleteMany({
+    await prisma.post.deleteMany({
       where: {
-        id: userId,
+        userId: userId,
       },
     });
+    const chat = await prisma.chat.findMany({
+      where: {
+        OR: [{ senderId: userId }, { receiverId: userId }],
+      },
+    });
+    await prisma.chat.deleteMany({
+      where: {
+        OR: [{ senderId: userId }, { receiverId: userId }],
+      },
+    });
+
+    const chatMessages = await prisma.chatMessages.findMany({
+      where: {
+        OR: [{ senderId: userId }, { receiverId: userId }],
+      },
+    });
+    await prisma.chatMessages.deleteMany({
+      where: {
+        OR: [{ senderId: userId }, { receiverId: userId }],
+      },
+    });
+
     await prisma.user.delete({
       where: {
         id: userId,
@@ -496,5 +519,49 @@ exports.filterView = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.lastAdded = async (req, res) => {
+  const days = parseInt(req.params.days);
+  if (isNaN(days) || days <= 0) {
+    return res.status(400).json({ error: "Invalid number of days provided" });
+  }
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+
+  console.log(startDate);
+  try {
+    const users = await prisma.user.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    const hidePassword = users.map((user) => {
+      const { password, ...elseUserProperties } = user;
+      return elseUserProperties;
+    });
+
+    let user = 0;
+    users.forEach(() => {
+      user++;
+    });
+    const response = {
+      user: user,
+      poshidePasswordts: hidePassword,
+    };
+
+    return res.status(200).json(response);
+
+    return res.status(200).json(hidePassword);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Error fetching users" });
   }
 };

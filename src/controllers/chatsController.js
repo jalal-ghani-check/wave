@@ -26,13 +26,27 @@ exports.createChat = async (req, res) => {
     if (user1.id === user2.id) {
       res.status(400).json("user1 and user2 must have different ids");
     }
+
     const post = await prisma.post.findUnique({
       where: {
         id: postId,
       },
+      include: {
+        chats: true,
+      },
     });
+
     if (!post) {
-      res.status(400).json("No post exist with this id ");
+      return res.status(400).json("No post exists with this id");
+    }
+    const chat = post.chats.find(
+      (chat) =>
+        (chat.senderId === user1Id && chat.receiverId === user2Id) ||
+        (chat.senderId === user2Id && chat.receiverId === user1Id)
+    );
+
+    if (chat) {
+      return res.status(400).json("Chat already exists between these users");
     }
     const senderProfileImage = user1.profile_image;
     const senderFirstName = user1.firstName;
@@ -40,10 +54,8 @@ exports.createChat = async (req, res) => {
     const receiverProfileImage = user2.profile_image;
     const receiverFirstName = user2.firstName;
     const receiverLastName = user2.lastName;
-    console.log(receiverLastName);
-    console.log(receiverFirstName);
 
-    const chat = await prisma.chat.create({
+    const chatt = await prisma.chat.create({
       data: {
         senderProfileImage,
         senderFirstName,
@@ -62,13 +74,13 @@ exports.createChat = async (req, res) => {
         },
       },
     });
-    return res.status(200).json(chat);
+    return res.status(200).json(chatt);
   } catch (error) {
-    console.log(error);
     if (error.code === "P2023") {
       console.log("Invalid Id format");
       return res.status(400).json("Invalid Id format");
     }
+    console.log(error);
   }
 };
 
@@ -97,6 +109,10 @@ exports.getUserContactList = async (req, res) => {
     const filteredIds = uniqueIds.filter((id) => id !== userId);
     res.json({ userIds: filteredIds });
   } catch (error) {
+    if (error.code === "P2023") {
+      console.log("Invalid Id format");
+      return res.status(400).json("Invalid Id format");
+    }
     console.log(error);
     res.status(500).json({ error: error.message });
   }
@@ -104,14 +120,13 @@ exports.getUserContactList = async (req, res) => {
 
 exports.checkReceiverAndConnectionExists = async (req, res) => {
   try {
-    const { user1Id, user2Id } = req.body;
-
+    const user1Id = req.params.id;
+    const { user2Id } = req.body;
     const user1 = await prisma.user.findUnique({
       where: {
         id: user1Id,
       },
     });
-
     if (!user1) {
       return res.status(400).json("No user1 exists with this id");
     }
@@ -120,13 +135,9 @@ exports.checkReceiverAndConnectionExists = async (req, res) => {
         id: user2Id,
       },
     });
-
     if (!user2) {
       return res.status(400).json("No user2 exists with this id");
     }
-
-    // give your user1 id , and get one specific user2 among (hundreds)
-
     const chat = await prisma.chat.findFirst({
       where: {
         senderId: user1Id,
@@ -137,11 +148,14 @@ exports.checkReceiverAndConnectionExists = async (req, res) => {
     if (!chat) {
       return res.status(400).json("user2 not found !!");
     }
-
     return res.status(200).json({
       message: `Contact Exist with the name of  :${user2.firstName} ${user2.lastName}`,
     });
   } catch (error) {
+    if (error.code === "P2023") {
+      console.log("Invalid Id format");
+      return res.status(400).json("Invalid Id format");
+    }
     console.log(error);
     return res.status(500).json({
       error: "An error occurred while checking the user2 and connection",
@@ -175,6 +189,10 @@ exports.getConnectionNames = async (req, res) => {
       receiverName: user2Name,
     });
   } catch (error) {
+    if (error.code === "P2023") {
+      console.log("Invalid Id format");
+      return res.status(400).json("Invalid Id format");
+    }
     console.log(error);
     return res
       .status(500)

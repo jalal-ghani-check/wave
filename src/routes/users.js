@@ -16,5 +16,6 @@ router.put("/:id", users.updateUser);
 router.put("/forget-password/:id", users.forgetPassword);
 router.put("/update-password/:id", users.updatePassword);
 router.post("/filters", users.filterView);
+router.get("/filters-new-user/:days", users.lastAdded);
 
 module.exports = router;

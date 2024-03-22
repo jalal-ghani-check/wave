@@ -6,21 +6,26 @@ const { validateCategory } = require("../validations/category");
 exports.addcategory = async (req, res) => {
   try {
     const { error, value } = validateCategory(req.body);
-
     if (error) {
       return res
         .status(400)
         .json({ message: `Validation error: ${error.details[0].message}` });
     }
-
     const { name } = value;
 
+    const Category = await prisma.category.findFirst({
+      where: {
+        name,
+      },
+    });
+    if (Category) {
+      return res.status(400).json({ message: "Category Already Exist " });
+    }
     const Categoryy = await prisma.category.create({
       data: {
         name,
       },
     });
-
     return res.status(201).json({
       message: "Category created successfully",
       data: Categoryy,
@@ -42,17 +47,22 @@ exports.updatecategory = async (req, res) => {
     }
 
     const { name } = value;
-
+    const Category = await prisma.category.findFirst({
+      where: {
+        name,
+      },
+    });
+    if (Category) {
+      return res.status(400).json({ message: "Category Already Exist " });
+    }
     const isCategory = await prisma.category.findUnique({
       where: {
         id: req.params.id,
       },
     });
-
     if (!isCategory) {
       return res.status(404).json({ message: "Category Not Found" });
     }
-
     const updateCategory = await prisma.category.update({
       where: {
         id: req.params.id,
@@ -61,7 +71,6 @@ exports.updatecategory = async (req, res) => {
         name,
       },
     });
-
     return res
       .status(201)
       .json({ message: "Category Updated Successfully", data: updateCategory });
@@ -78,23 +87,19 @@ exports.updatecategory = async (req, res) => {
 exports.deletecategory = async (req, res) => {
   try {
     const categoryId = req.params.id; // contain category id
-
     const iscategory = await prisma.category.findUnique({
       where: {
         id: categoryId, // contain message data
       },
     });
-
     if (!iscategory) {
       return res.status(404).json({ message: "Category Not Found" });
     }
-
     await prisma.category.delete({
       where: {
         id: categoryId,
       },
     });
-
     return res.status(200).json({ message: "Category Deleted Successfully" });
   } catch (error) {
     if (error.code === "P2023") {

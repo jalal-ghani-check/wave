@@ -12,5 +12,6 @@ router.post("/create", post.addPost);
 router.put("/update/:id", post.updatePost);
 router.delete("/delete/:id", post.deletePost);
 router.post("/get-posts", post.SearchPosts);
+router.get("/filters-new-posts/:days", post.lastDays);
 
 module.exports = router;

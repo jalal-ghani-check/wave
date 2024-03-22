@@ -21,14 +21,24 @@ function postUpdate(user) {
     longitude: Joi.number().optional(),
     latitude: Joi.number().optional(),
     address: Joi.string().optional(),
-    // userId: Joi.string().allow(null).optional(),
     categoryId: Joi.string().allow(null).optional(),
   });
   const { error, value } = postUpdateSchema.validate(user);
   return { error, value };
 }
 
+function postRadius(user) {
+  const postRadiusSchema = Joi.object({
+    userLat: Joi.number().precision(2).required(),
+    userLon: Joi.number().precision(2).required(),
+    distance: Joi.number().required(),
+  });
+  const { error, value } = postRadiusSchema.validate(user);
+  return { error, value };
+}
+
 module.exports = {
   postScheema,
   postUpdate,
+  postRadius,
 };
