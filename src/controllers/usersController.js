@@ -221,14 +221,21 @@ exports.updateUser = async (req, res) => {
         .status(400)
         .json({ message: `Validation error: ${error.details[0].message}` });
     }
+    const userId = req.user.id;
     const existingUser = await prisma.user.findUnique({
       where: {
-        id: req.params.id,
+        id: userId,
       },
     });
     if (!existingUser) {
       return res.status(400).json({ message: "User not found" });
     }
+    if (existingUser.id !== userId) {
+      return res
+        .status(403)
+        .json({ message: "You are not authorized to update this user" });
+    }
+
     if (value.email !== undefined && value.email !== existingUser.email) {
       const userWithEmail = await prisma.user.findUnique({
         where: {
@@ -244,7 +251,7 @@ exports.updateUser = async (req, res) => {
     }
     const updateData = await prisma.user.update({
       where: {
-        id: req.params.id,
+        id: userId,
       },
       data: {
         firstName: value?.firstName,

@@ -1,4 +1,5 @@
 const prisma = require("../configs/databaseConfig");
+const jwt = require("jsonwebtoken");
 const { postScheema, postUpdate, postRadius } = require("../validations/post");
 
 const express = require("express");
@@ -14,8 +15,8 @@ exports.addPost = async (req, res) => {
         .status(400)
         .json({ message: `Validation error: ${error.details[0].message}` });
     }
-    const { title, body, address, longitude, latitude, userId, categoryId } =
-      value;
+    const { title, body, address, longitude, latitude, categoryId } = value;
+    const userId = req.user.id;
     const isUser = await prisma.user.findUnique({
       where: {
         id: userId,
@@ -91,7 +92,6 @@ exports.deletePost = async (req, res) => {
     });
 
     await prisma.post.delete({
-      // Work perfect
       where: {
         id: postId,
       },
@@ -114,15 +114,29 @@ exports.updatePost = async (req, res) => {
         .status(400)
         .json({ message: `Validation error: ${error.details[0].message}` });
     }
+    const userId = req.user.id;
+
     const { title, body, address, longitude, latitude, categoryId } = value;
+
+    const postId = req.params.id;
     const isPost = await prisma.post.findUnique({
       where: {
-        id: req.params.id,
+        id: postId,
+      },
+      include: {
+        user: true,
       },
     });
     if (!isPost) {
       return res.status(404).json({ message: "Post Not Found" });
     }
+
+    if (isPost.user.id !== userId) {
+      return res
+        .status(403)
+        .json({ message: "You are not authorized to update this post" });
+    }
+
     if (categoryId !== undefined) {
       const isCategory = await prisma.category.findUnique({
         where: {
@@ -221,9 +235,11 @@ exports.allPosts = async (req, res) => {
 
 exports.getPostsByUserId = async (req, res) => {
   try {
+    const userId = req.user.id;
+
     const posts = await prisma.post.findMany({
       where: {
-        userId: req.params.id,
+        userId: userId,
       },
     });
     if (posts.length === 0) {

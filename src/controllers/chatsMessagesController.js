@@ -36,18 +36,28 @@ exports.updateChatMessage = async function getChatMessagesByChatId(req, res) {
   try {
     const messageId = req.params.id;
     const newBody = req.body.newBody;
-
+    const userId = req.user.id;
     const isMessage = await prisma.chatMessages.findUnique({
       where: {
         id: messageId,
       },
+      include: {
+        sender: true,
+        receiver: true,
+      },
     });
-
-    if (chatMessages.length === 0) {
-      return res
-        .status(404)
-        .json({ error: "No chat messages found for this Chat Id" });
+    if (!isMessage) {
+      return res.status(404).json({ message: "Chat Message not found" });
     }
+    const isAuthorized =
+      isMessage.sender.id === userId || isMessage.receiver.id === userId;
+
+    if (!isAuthorized) {
+      return res
+        .status(403)
+        .json({ message: "You are not authorized to update this post" });
+    }
+
     const newMessage = await prisma.chatMessages.update({
       where: {
         id: messageId,

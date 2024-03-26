@@ -17,8 +17,9 @@ exports.createChat = async (req, res) => {
         .status(400)
         .json({ message: `Validation error: ${error.details[0].message}` });
     }
+    const user1Id = req.user.id;
 
-    const { user1Id, user2Id, postId } = value;
+    const { user2Id, postId } = value;
     const user1 = await prisma.user.findUnique({
       where: {
         id: user1Id,
@@ -33,10 +34,10 @@ exports.createChat = async (req, res) => {
       },
     });
     if (!user2) {
-      res.status(400).json("No user2 exist with this id ");
+      return res.status(400).json("No user exist with this id ");
     }
     if (user1.id === user2.id) {
-      res.status(400).json("user1 and user2 must have different ids");
+      return res.status(400).json("user1 and user2 must have different ids");
     }
 
     const post = await prisma.post.findUnique({
@@ -98,15 +99,7 @@ exports.createChat = async (req, res) => {
 
 exports.getUserContactList = async (req, res) => {
   try {
-    const { error, value } = validateId(req.params);
-    if (error) {
-      return res
-        .status(400)
-        .json({ message: `Validation error: ${error.details[0].message}` });
-    }
-
-    const userId = value.id;
-
+    const userId = req.user.id;
     if (!userId) {
       return res
         .status(400)
@@ -139,22 +132,15 @@ exports.getUserContactList = async (req, res) => {
 
 exports.checkReceiverAndConnectionExists = async (req, res) => {
   try {
-    const { error: errorParams, value: valueParams } = validateIdParams(
-      req.params
-    );
     const { error: errorBody, value: valueBody } = validateIdBody(req.body);
-    if (errorParams) {
-      return res
-        .status(400)
-        .json({ message: `Validation error params: ${errorParams}` });
-    }
+
     if (errorBody) {
       return res
         .status(400)
         .json({ message: `Validation error body: ${errorBody}` });
     }
 
-    const user1Id = valueParams.id;
+    const user1Id = req.user.id;
     const user2Id = valueBody.user2Id;
 
     const user1 = await prisma.user.findUnique({
@@ -171,7 +157,7 @@ exports.checkReceiverAndConnectionExists = async (req, res) => {
       },
     });
     if (!user2) {
-      return res.status(400).json("No user2 exists with this id");
+      return res.status(400).json("No user exists with this id");
     }
     const chat = await prisma.chat.findFirst({
       where: {

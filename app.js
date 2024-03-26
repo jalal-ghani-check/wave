@@ -18,10 +18,6 @@ app.get("/ping", async (req, res) => {
 module.exports = { io, http, server, socketIo };
 const socket = require("./src/services/socket.service");
 
-// app.listen(port, () => {
-//   console.log(`Server is running at http://localhost:${port}`);
-// });
-
 server.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });

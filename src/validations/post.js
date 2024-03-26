@@ -7,7 +7,7 @@ function postScheema(user) {
     longitude: Joi.number().required(),
     latitude: Joi.number().required(),
     address: Joi.string().required(),
-    userId: Joi.string().required(),
+
     categoryId: Joi.string().required(),
   });
   const { error, value } = postSchema.validate(user);

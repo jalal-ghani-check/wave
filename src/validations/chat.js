@@ -2,7 +2,6 @@ const Joi = require("joi");
 
 function createChat(user) {
   const chatSchema = Joi.object({
-    user1Id: Joi.string().length(24).required(),
     user2Id: Joi.string().length(24).required(),
     postId: Joi.string().length(24).required(),
   });
