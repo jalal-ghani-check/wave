@@ -6,7 +6,7 @@ const {
   sendCustomNotification,
 } = require("../controllers/notificationController");
 
-const { io, http, server, socketIo } = require("../../app");
+const { io, http, server, socketIo } = require("../../index");
 
 dotenv.config();
 const secretKey = process.env.SECRETKEY;
