@@ -1,6 +1,9 @@
 const prisma = require("../configs/databaseConfig");
 const bcrypt = require("bcrypt");
 const Jwt = require("jsonwebtoken");
+const { emailValidate } = require("../validations/mail");
+const sendOTP = require("../services/mailSender.service");
+const crypto = require("crypto");
 
 const {
   validateUserSignUp,
@@ -153,63 +156,62 @@ exports.getOne = async (req, res) => {
   }
 };
 
-exports.deleteUser = async (req, res) => {
-  try {
-    const userId = req.params.id;
-    const existingId = await prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-    });
-    if (!existingId) {
-      return res.status(400).json({ message: "user not found" });
-    }
-    const post = await prisma.post.findMany({
-      where: {
-        userId: userId,
-      },
-    });
-    await prisma.post.deleteMany({
-      where: {
-        userId: userId,
-      },
-    });
-    const chat = await prisma.chat.findMany({
-      where: {
-        OR: [{ senderId: userId }, { receiverId: userId }],
-      },
-    });
-    await prisma.chat.deleteMany({
-      where: {
-        OR: [{ senderId: userId }, { receiverId: userId }],
-      },
-    });
+// exports.deleteUser = async (req, res) => {
+//   try {
+//     const userId = req.params.id;
+//     const existingId = await prisma.user.findUnique({
+//       where: {
+//         id: userId,
+//       },
+//     });
+//     if (!existingId) {
+//       return res.status(400).json({ message: "user not found" });
+//     }
 
-    const chatMessages = await prisma.chatMessages.findMany({
-      where: {
-        OR: [{ senderId: userId }, { receiverId: userId }],
-      },
-    });
-    await prisma.chatMessages.deleteMany({
-      where: {
-        OR: [{ senderId: userId }, { receiverId: userId }],
-      },
-    });
+//     await prisma.chatMessages.deleteMany({
+//       where: {
+//         OR: [{ senderId: userId }, { receiverId: userId }],
+//       },
+//     });
+//     await prisma.chat.deleteMany({
+//       where: {
+//         OR: [{ senderId: userId }, { receiverId: userId }],
+//       },
+//     });
+//     const posts = await prisma.post.findMany({
+//       where: {
+//         userId: userId,
+//       },
+//     });
 
-    await prisma.user.delete({
-      where: {
-        id: userId,
-      },
-    });
-    return res.status(200).json({ message: "user deleted Successfully" });
-  } catch (error) {
-    if (error.code === "P2023") {
-      return res.status(404).json({ message: "Invalid Id format" });
-    }
-    console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
+//     for (const post of posts) {
+//       await prisma.chat.deleteMany({
+//         where: {
+//           postId: post.id,
+//         },
+//       });
+//     }
+
+//     await prisma.post.deleteMany({
+//       where: {
+//         userId: userId,
+//       },
+//     });
+
+//     await prisma.user.delete({
+//       where: {
+//         id: userId,
+//       },
+//     });
+//     return res.status(200).json({ message: "user deleted Successfully" });
+//   } catch (error) {
+//     if (error.code === "P2023") {
+//       return res.status(404).json({ message: "Invalid Id format" });
+//     }
+//     console.error(error);
+//     return res.status(500).json({ message: "Internal server error" });
+//   }
+// };
 
 exports.updateUser = async (req, res) => {
   try {
@@ -563,5 +565,47 @@ exports.lastAdded = async (req, res) => {
   } catch (error) {
     console.error("Error fetching users:", error);
     res.status(500).json({ error: "Error fetching users" });
+  }
+};
+
+exports.otp = async (req, res) => {
+  try {
+    const { error, value } = emailValidate(req.body);
+    if (error) {
+      return res
+        .status(400)
+        .json({ message: `Validation error: ${error.details[0].message}` });
+    }
+    const { email } = value;
+    const isUser = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!isUser) {
+      return res.status(404).send("Email Not Found !! ");
+    }
+    const min = 1000;
+    const max = 9999;
+    const otp = crypto.randomInt(min, max + 1);
+    console.log("OTP:", otp);
+    const data = await prisma.otp.create({
+      data: {
+        email: email,
+        otp: otp,
+        receiver_id: isUser.id,
+      },
+    });
+    const emailSent = await sendOTP(email, otp);
+    if (emailSent) {
+      console.log("OTP sent successfully");
+      return res.status(200).send("OTP sent successfully");
+    } else {
+      return res.status(500).send("Failed to send OTP");
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).send("Internal server error");
   }
 };

@@ -11,5 +11,6 @@ router.get("/All", admins.getAllAdmin);
 router.get("/:id", admins.getOne);
 router.put("/forget-password/:id", admins.forgetPassword);
 router.put("/update-password/:id", admins.updatePassword);
+router.post("/sendotp", admins.otp);
 
 module.exports = router;

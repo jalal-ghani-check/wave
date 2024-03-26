@@ -1,6 +1,9 @@
 const prisma = require("../configs/databaseConfig");
 const bcrypt = require("bcrypt");
 const Jwt = require("jsonwebtoken");
+const { emailValidate } = require("../validations/mail");
+const sendOTP = require("../services/mailSender.service");
+const crypto = require("crypto");
 
 const {
   validateAdminSignUp,
@@ -362,5 +365,47 @@ exports.updatePassword = async (req, res) => {
       return res.status(400).json({ message: "Invalid admin ID format" });
     }
     console.error(error);
+  }
+};
+
+exports.otp = async (req, res) => {
+  try {
+    const { error, value } = emailValidate(req.body);
+    if (error) {
+      return res
+        .status(400)
+        .json({ message: `Validation error: ${error.details[0].message}` });
+    }
+    const { email } = value;
+    const isAdmin = await prisma.admin.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!isAdmin) {
+      return res.status(404).send("Email Not Found !! ");
+    }
+    const min = 1000;
+    const max = 9999;
+    const otp = crypto.randomInt(min, max + 1);
+    console.log("OTP:", otp);
+    const data = await prisma.otp.create({
+      data: {
+        email: email,
+        otp: otp,
+        receiver_id: isAdmin.id,
+      },
+    });
+    const emailSent = await sendOTP(email, otp);
+    if (emailSent) {
+      console.log("OTP sent successfully");
+      return res.status(200).send("OTP sent successfully");
+    } else {
+      return res.status(500).send("Failed to send OTP");
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).send("Internal server error");
   }
 };

@@ -1,12 +1,24 @@
 const prisma = require("../configs/databaseConfig");
 
-// const {  validatechat } = require("../validations/chat ");
+const {
+  createChat,
+  validateIdParams,
+  validateIdBody,
+  validateChatId,
+} = require("../validations/chat");
 
 require("dotenv").config();
 
 exports.createChat = async (req, res) => {
   try {
-    const { user1Id, user2Id, postId } = req.body;
+    const { error, value } = createChat(req.body);
+    if (error) {
+      return res
+        .status(400)
+        .json({ message: `Validation error: ${error.details[0].message}` });
+    }
+
+    const { user1Id, user2Id, postId } = value;
     const user1 = await prisma.user.findUnique({
       where: {
         id: user1Id,
@@ -86,7 +98,14 @@ exports.createChat = async (req, res) => {
 
 exports.getUserContactList = async (req, res) => {
   try {
-    const userId = req.params.id;
+    const { error, value } = validateId(req.params);
+    if (error) {
+      return res
+        .status(400)
+        .json({ message: `Validation error: ${error.details[0].message}` });
+    }
+
+    const userId = value.id;
 
     if (!userId) {
       return res
@@ -120,8 +139,24 @@ exports.getUserContactList = async (req, res) => {
 
 exports.checkReceiverAndConnectionExists = async (req, res) => {
   try {
-    const user1Id = req.params.id;
-    const { user2Id } = req.body;
+    const { error: errorParams, value: valueParams } = validateIdParams(
+      req.params
+    );
+    const { error: errorBody, value: valueBody } = validateIdBody(req.body);
+    if (errorParams) {
+      return res
+        .status(400)
+        .json({ message: `Validation error params: ${errorParams}` });
+    }
+    if (errorBody) {
+      return res
+        .status(400)
+        .json({ message: `Validation error body: ${errorBody}` });
+    }
+
+    const user1Id = valueParams.id;
+    const user2Id = valueBody.user2Id;
+
     const user1 = await prisma.user.findUnique({
       where: {
         id: user1Id,
@@ -165,8 +200,12 @@ exports.checkReceiverAndConnectionExists = async (req, res) => {
 
 exports.getConnectionNames = async (req, res) => {
   try {
-    const { chatId } = req.body;
+    const { error, value } = validateChatId(req.body);
+    if (error) {
+      return res.status(400).json({ message: `Validation error : ${error}` });
+    }
 
+    const chatId = req.body.chatId;
     const chat = await prisma.chat.findUnique({
       where: {
         id: chatId,
@@ -176,7 +215,6 @@ exports.getConnectionNames = async (req, res) => {
         receiver: true,
       },
     });
-
     if (!chat) {
       return res.status(400).json("No chat exists with this id");
     }

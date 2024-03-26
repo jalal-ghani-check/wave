@@ -74,30 +74,24 @@ exports.deletePost = async (req, res) => {
         postId: postId,
       },
     });
-    const chatId = isChat.id;
-    const isChatMessages = await prisma.chatMessages.findMany({
-      where: {
-        chatId: chatId,
-      },
-    });
 
-    await prisma.chatMessages.deleteMany({
-      // delete messages
-      where: {
-        chatId: chatId,
-      },
-    });
+    for (const chat of isChat) {
+      await prisma.chatMessages.deleteMany({
+        where: {
+          chatId: chat.id,
+        },
+      });
+    }
 
     await prisma.chat.deleteMany({
-      // delete Chat
+      // work perfect
       where: {
         postId: postId,
       },
     });
 
     await prisma.post.delete({
-      // delete Post
-      // delete post
+      // Work perfect
       where: {
         id: postId,
       },

@@ -1,17 +1,6 @@
-const prisma = require("../configs/databaseConfig");
-const express = require("express");
-const app = express();
 const dotenv = require("dotenv");
-const cors = require("cors");
-const otpGenerator = require("otp-generator");
 const nodemailer = require("nodemailer");
-const crypto = require("crypto");
-const { emailValidate } = require("../validations/mail");
-
 dotenv.config();
-
-app.use(express.json());
-app.use(cors());
 
 const sendOTP = async (email, otp) => {
   try {
@@ -30,56 +19,11 @@ const sendOTP = async (email, otp) => {
       html: `Your OTP is: <strong>${otp}</strong>`,
     };
     await transporter.sendMail(mailData);
-    return true; // Email sent successfully
+    return true;
   } catch (error) {
     console.error("Error sending email:", error);
-    return false; // Email sending failed
+    return false;
   }
 };
 
-app.post("/sendotp", async (req, res) => {
-  try {
-    const { error, value } = emailValidate(req.body);
-    if (error) {
-      return res
-        .status(400)
-        .json({ message: `Validation error: ${error.details[0].message}` });
-    }
-    const { email } = value;
-    const isUser = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
-    const isAdmin = await prisma.admin.findUnique({
-      where: {
-        email,
-      },
-    });
-    if (!isUser && !isAdmin) {
-      return res.status(404).send("Email Not Found !! ");
-    }
-    const min = 1000;
-    const max = 9999;
-    const otp = crypto.randomInt(min, max + 1);
-    console.log("OTP:", otp);
-    const data = await prisma.otp.create({
-      data: {
-        email: email,
-        otp: otp,
-        receiver_id: isUser ? isUser.id : isAdmin.id,
-      },
-    });
-    const emailSent = await sendOTP(email, otp);
-    if (emailSent) {
-      return res.status(200).send("OTP sent successfully");
-    } else {
-      return res.status(500).send("Failed to send OTP");
-    }
-  } catch (error) {
-    console.error("Error:", error);
-    return res.status(500).send("Internal server error");
-  }
-});
-const PORT = 8000;
-app.listen(PORT, () => console.log(`Server up and running at port ${PORT}`));
+module.exports = sendOTP;

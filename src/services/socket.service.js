@@ -1,10 +1,14 @@
 const dotenv = require("dotenv");
+dotenv.config();
 const jwt = require("jsonwebtoken");
 const prisma = require("../configs/databaseConfig");
-const { sendCustomNotification } = require("./notificationController");
+const {
+  sendCustomNotification,
+} = require("../controllers/notificationController");
+
+const { io, http, server, socketIo } = require("../../app");
 
 dotenv.config();
-
 const secretKey = process.env.SECRETKEY;
 
 let authenticatedUsers = {};

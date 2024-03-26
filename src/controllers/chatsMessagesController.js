@@ -16,9 +16,12 @@ exports.getMessages = async function getChatMessagesByChatId(req, res) {
       },
     });
 
-    if (!chatMessages || chatMessages.length === 0) {
-      return res.status(404).json({ error: "Chat Id does not exist" });
+    if (chatMessages.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "No chat messages found for this Chat Id" });
     }
+    console.log(chatMessages);
     return res.status(200).json({ message: chatMessages });
   } catch (error) {
     if (error.code === "P2023") {
@@ -27,7 +30,7 @@ exports.getMessages = async function getChatMessagesByChatId(req, res) {
     console.error("Error fetching chat messages:", error);
     throw error;
   }
-}; // Tested
+};
 
 exports.updateChatMessage = async function getChatMessagesByChatId(req, res) {
   try {
@@ -40,8 +43,10 @@ exports.updateChatMessage = async function getChatMessagesByChatId(req, res) {
       },
     });
 
-    if (!isMessage) {
-      return res.status(404).json({ error: "Chat Message Not Found" });
+    if (chatMessages.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "No chat messages found for this Chat Id" });
     }
     const newMessage = await prisma.chatMessages.update({
       where: {
