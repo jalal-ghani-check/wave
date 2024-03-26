@@ -9,7 +9,6 @@ const io = socketIo(server);
 const port = process.env.PORT;
 app.use(express.json());
 
-// app.use("/api",route);
 app.use("/api", require("./src/routes"));
 
 app.get("/ping", async (req, res) => {
@@ -20,14 +19,15 @@ app.get('/', (req, res) => {
   res.send('Hello World!');
  });
 
-module.exports = { io, http, server, socketIo };
-const socket = require("./src/services/socket.service");
+// module.exports = { io, http, server, socketIo };
+// const socket = require("./src/services/socket.service");
 
 // app.listen(port, () => {
 //   console.log(`Server is running at http://localhost:${port}`);
 // });
 
-server.listen(port, () => {
+app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });
+
 
