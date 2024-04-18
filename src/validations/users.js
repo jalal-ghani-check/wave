@@ -16,7 +16,7 @@ function validateUserSignUp(user) {
     country: Joi.string().required(),
     postalCode: Joi.string().required(),
     phoneNumber: Joi.string().required(),
-    profile_image: Joi.string(),
+    profile_image: Joi.string().optional(),
   });
   const { error, value } = usersignUpSchema.validate(user);
   return { error, value };
@@ -47,11 +47,8 @@ function validateUserUpdate(user) {
 
 function validateForgetPassword(user) {
   const forgetpasswordSchema = Joi.object({
+    email: Joi.string().email().required(),
     newPassword: Joi.string()
-      .min(8)
-      .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*]).*$/)
-      .required(),
-    confirmNewPassword: Joi.string()
       .min(8)
       .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*]).*$/)
       .required(),
@@ -71,12 +68,7 @@ function validateUpdatePassword(user) {
     newpassword: Joi.string()
       .min(8)
       .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*]).*$/)
-      .required(),
-    confirmPassword: Joi.string()
-      .min(8)
-      .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*]).*$/)
-      .required(),
-    otp: Joi.number().integer().min(1000).max(9999).required(),
+      .required(), 
   });
 
   const { error, value } = updatePasswordSchema.validate(user);

@@ -15,7 +15,7 @@ model User {
   password String 
   firstName String
   lastName String 
-  profile_image String  @default(value: "default_sender_image_url")
+  profile_image String  @default(value: "default_image_url")
   dateOfBirth DateTime
   address String 
   city String 
@@ -75,9 +75,8 @@ model Post {
 
 model Otp {
   id String @id @default(auto()) @map("_id") @db.ObjectId
-  receiver_id String 
-  otp Int
-  email String
+  receiver_email String 
+  otp Int  
   status String @default("pending")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

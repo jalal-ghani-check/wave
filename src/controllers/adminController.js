@@ -409,3 +409,17 @@ exports.otp = async (req, res) => {
     return res.status(500).send("Internal server error");
   }
 };
+
+exports.logout = async (req, res) => {
+  try {
+    const userId = req.admin.id;
+
+    const token = Jwt.sign({ userId: userId }, process.env.SECRETKEY, {
+      expiresIn: "-1s",
+    });
+    res.json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "An error occurred while logging out" });
+  }
+};
