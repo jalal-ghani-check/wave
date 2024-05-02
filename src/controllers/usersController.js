@@ -49,9 +49,14 @@ exports.signUp = async (req, res) => {
       },
     });
     delete user.password;
+   const jwtToken = Jwt.sign({ user }, process.env.SECRETKEY,
+    {
+      expiresIn: process.env.JWT_Expiry,
+    });
+
     return res
       .status(201)
-      .json({ message: "user successfully created", user });
+      .json({ message: "user successfully created", user, token: jwtToken });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
