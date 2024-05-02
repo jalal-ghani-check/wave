@@ -23,17 +23,17 @@ exports.signUp = async (req, res) => {
         .status(400)
         .json({ message: `Validation error: ${error.details[0].message}` });
     }
-    const user = await prisma.user.findUnique({
+    const isUser = await prisma.user.findUnique({
       where: {
         email: value.email,
       },
     });
-    if (user) {
+    if (isUser) {
       return res.status(400).json({ message: "Email Already Exist" });
     }
     const saltRound = process.env.saltRounds;
     const hashPassword = await bcrypt.hash(value.password, parseInt(saltRound));
-    const newUser = await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         email: value.email,
         password: hashPassword,
@@ -48,10 +48,10 @@ exports.signUp = async (req, res) => {
         profile_image: value?.profile_image,
       },
     });
-    delete newUser.password;
+    delete user.password;
     return res
       .status(201)
-      .json({ message: "user successfully created", newUser });
+      .json({ message: "user successfully created", user });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
