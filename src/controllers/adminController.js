@@ -182,7 +182,6 @@ exports.forgetPassword = async (req, res) => {
       return res.status(400).json({ message: "Admin Not Exists  ." });
     }
     if (newPassword === confirmNewPassword) {
-      console.log("Password are same");
       const saltRound = process.env.saltRounds;
       var hashPassword = await bcrypt.hash(newPassword, parseInt(saltRound));
     } else {
@@ -389,7 +388,6 @@ exports.otp = async (req, res) => {
     const min = 1000;
     const max = 9999;
     const otp = crypto.randomInt(min, max + 1);
-    console.log("OTP:", otp);
     const data = await prisma.otp.create({
       data: {
         email: email,
@@ -399,7 +397,6 @@ exports.otp = async (req, res) => {
     });
     const emailSent = await sendOTP(email, otp);
     if (emailSent) {
-      console.log("OTP sent successfully");
       return res.status(200).send("OTP sent successfully");
     } else {
       return res.status(500).send("Failed to send OTP");

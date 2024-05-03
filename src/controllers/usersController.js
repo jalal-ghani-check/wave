@@ -372,7 +372,6 @@ exports.forgetPassword = async (req, res) => {
 
 exports.updatePassword = async (req, res) => {
   try {
-    console.log("Update Password is running")
     const { error, value } = validateUpdatePassword(req.body);
     if (error) {
       return res
@@ -495,7 +494,6 @@ exports.lastAdded = async (req, res) => {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
 
-  console.log(startDate);
   try {
     const users = await prisma.user.findMany({
       where: {
@@ -552,7 +550,6 @@ exports.otp = async (req, res) => {
     const min = 1000;
     const max = 9999;
     const otp = crypto.randomInt(min, max + 1);
-    console.log("OTP:", otp);
     const data = await prisma.otp.create({
       data: {
         otp: otp,
@@ -561,7 +558,6 @@ exports.otp = async (req, res) => {
     });
     const emailSent = await sendOTP(email, otp);
     if (emailSent) {
-      console.log("OTP sent successfully");
       return res.status(200).send("OTP sent successfully");
     } else {
       return res.status(500).send("Failed to send OTP");

@@ -19,13 +19,10 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-// module.exports = { io, http, server, socketIo };
-// const socket = require("./src/services/socket.service");
+module.exports = { io, http, server, socketIo };
+ const socket = require("./src/services/socket.service");
 
-// app.listen(port, () => {
-//   console.log(`Server is running at http://localhost:${port}`);
-// });
-
-app.listen(port, () => {
+ 
+server.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });

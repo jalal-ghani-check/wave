@@ -28,7 +28,6 @@ io.use((socket, next) => {
 });
 
 io.on("connection", (socket) => {
-  console.log("A client is being connected with an id of:", socket.userID);
   authenticatedUsers[socket.userID] = socket;
   socket.emit("hello", "Welcome to the app!");
   socket.on("privateMessage", async ({ recipientId, message, chatId }) => {
@@ -67,7 +66,6 @@ io.on("connection", (socket) => {
       });
 
       if (!existingChat) {
-        console.log("This is running ");
         socket.emit(
           "errorMessage",
           "Chat does not exist or does not involve both users"
@@ -78,7 +76,7 @@ io.on("connection", (socket) => {
       if (existingChat) {
         chatId = existingChat.id;
       }
-      const newChatMessage = await prisma.chatMessages.create({
+       await prisma.chatMessages.create({
         data: {
           body: message,
           sender: { connect: { id: socket.userID } },
@@ -86,15 +84,11 @@ io.on("connection", (socket) => {
           chat: { connect: { id: chatId } },
         },
       });
-      console.log("save");
-      console.log("Chat message saved:", newChatMessage);
       if (recipientSocket) {
         recipientSocket.emit("privateMessage", {
           senderId: socket.userID,
           message: message,
         });
-        console.log("sent ");
-        console.log("Notification ");
         await sendCustomNotification(
           "A new Message ",
           `A new message came from ${socket.userID}`,
@@ -113,7 +107,6 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", async () => {
     delete authenticatedUsers[socket.userID];
-    console.log("User disconnected:", socket.userID);
     socket.broadcast.emit("userDisconnected", socket.userID);
   });
 });
