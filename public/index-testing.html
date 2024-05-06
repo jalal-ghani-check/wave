@@ -9,26 +9,27 @@
             padding-bottom: 3rem;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-  
- 
- 
     </style>
 </head>
 
 <body>
- 
-
     <script src="/socket.io/socket.io.js"></script>
     <script>
         var socket = io();
 
-        socket.on('hello', function() {
+        socket.on('helloWithoutJwt', function () {
             var h1 = document.createElement('h1');
-            h1.textContent = 'Socket is online';
+            h1.textContent = 'Welcome to the app. But, you are not an Authenticated user!!';
             document.body.appendChild(h1);
         });
 
-        socket.on('connect_error', function(error) {
+        socket.on('helloWithJwt', function () {
+            var h1 = document.createElement('h1');
+            h1.textContent = 'Welcome to the app. You are now Authenticated user!';
+            document.body.appendChild(h1);
+        });
+
+        socket.on('connect_error', function (error) {
             // Display an error message to the user
             var errorDiv = document.getElementById('error');
             errorDiv.textContent = 'Failed to establish connection: ' + error.message;
@@ -37,5 +38,4 @@
 
     </script>
 </body>
-
 </html>

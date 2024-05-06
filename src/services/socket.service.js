@@ -5,35 +5,32 @@ const prisma = require("../configs/databaseConfig");
 const {
   sendCustomNotification,
 } = require("../controllers/notificationController");
-
-const { io, chatt} = require("../../index");
-
+const { io } = require("../../index");
 dotenv.config();
 const secretKey = process.env.SECRETKEY;
-
 let authenticatedUsers = {};
+io.on("connection", (socket) => {
+  socket.emit("helloWithoutJwt", "Welcome to the app. But, you are not an Authenticated user!!");
 
-io.use((socket, next) => {
   const token = socket.handshake.headers.authorization;
   if (!token) {
-    return next(new Error("Authentication token is required"));
+    socket.emit("errorMessage", "Authentication token is required");
+    return
   }
   try {
     const decoded = jwt.verify(token, secretKey);
     socket.userID = decoded.id;
     socket.username = decoded.firstName;
-    return next();
+    authenticatedUsers[socket.userID] = socket;
   } catch (error) {
     if (error.message === "jwt expired") {
       console.log("Token Has Expired");
     }
-    return next(new Error("Invalid or expired token"));
+    socket.emit("errorMessage", "Invalid or expired token");
+    return;
   }
-});
 
-io.on("connection", (socket) => {
-  authenticatedUsers[socket.userID] = socket;
-  socket.emit("hello", "Welcome to the app!");
+  socket.emit("helloWithJwt", "Welcome to the app. You are now Authenticated user!");
   socket.on("privateMessage", async ({ recipientId, message, chatId }) => {
     const recipientSocket = authenticatedUsers[recipientId];
     try {

@@ -8,7 +8,7 @@ module.exports = { io, server };
 const path = require("path");
 const socket = require("./src/services/socket.service");
 
-const port = 5000 || process.env.PORT;
+const port = process.env.PORT;
 app.use(express.json());
 
 app.use("/api", require("./src/routes"));
@@ -16,19 +16,15 @@ app.use("/api", require("./src/routes"));
 app.get("/ping", async (req, res) => {
   res.status(200).json({ message: "Connected" });
 });
- 
- 
-app.get('/socket/real-time', (req, res) => {
+
+
+app.get('/', (req, res) => {
   res.sendFile(__dirname + '/public/index.html');
- });
- 
- app.get('/socket/test', (req, res) => {
-  res.sendFile(__dirname + '/public/index-testing.html');
 });
 
-// io.on('connection', (socket) => {
-//   socket.emit('connection_established');
-// });
+app.get('/socket/test', (req, res) => {
+  res.sendFile(__dirname + '/public/index-testing.html');
+});
 
 server.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
