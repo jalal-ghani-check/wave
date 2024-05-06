@@ -6,30 +6,30 @@ const {
   sendCustomNotification,
 } = require("../controllers/notificationController");
 
-const { io, http, server, socketIo } = require("../../index");
+const { io, chatt} = require("../../index");
 
 dotenv.config();
 const secretKey = process.env.SECRETKEY;
 
 let authenticatedUsers = {};
 
-io.use((socket, next) => {
-  const token = socket.handshake.headers.authorization;
-  if (!token) {
-    return next(new Error("Authentication token is required"));
-  }
-  try {
-    const decoded = jwt.verify(token, secretKey);
-    socket.userID = decoded.id;
-    socket.username = decoded.firstName;
-    return next();
-  } catch (error) {
-    if (error.message === "jwt expired") {
-      console.log("Token Has Expired");
-    }
-    return next(new Error("Invalid or expired token"));
-  }
-});
+// io.use((socket, next) => {
+//   const token = socket.handshake.headers.authorization;
+//   if (!token) {
+//     return next(new Error("Authentication token is required"));
+//   }
+//   try {
+//     const decoded = jwt.verify(token, secretKey);
+//     socket.userID = decoded.id;
+//     socket.username = decoded.firstName;
+//     return next();
+//   } catch (error) {
+//     if (error.message === "jwt expired") {
+//       console.log("Token Has Expired");
+//     }
+//     return next(new Error("Invalid or expired token"));
+//   }
+// });
 
 io.on("connection", (socket) => {
   authenticatedUsers[socket.userID] = socket;
