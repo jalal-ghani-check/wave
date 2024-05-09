@@ -4,7 +4,7 @@ const Jwt = require("jsonwebtoken");
 const { emailValidate } = require("../validations/mail");
 const sendOTP = require("../services/mailSender.service");
 const crypto = require("crypto");
-
+const cloudinary = require("../configs/image-uploadConfig")
 const {
   validateUserSignUp,
   validateUserUpdate,
@@ -585,3 +585,37 @@ exports.logout = async (req, res) => {
     res.status(500).json({ error: "An error occurred while logging out" });
   }
 };
+
+// controller
+exports.uploadProfile = async (req, res) => {
+  try {
+      const userId = req.user.id;
+    const currentTimeInMilliseconds = new Date().getTime();
+    let user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+    });
+    if (!user) {
+      return LoggerService.LoggerHandler(
+        STRINGS.STATUS_CODE.NOT_FOUND,
+        STRINGS.ERRORS.userNotExists,
+        res
+      );
+    }
+    // Convert milliseconds to seconds
+    const currentTimeInSeconds = Math.floor(currentTimeInMilliseconds / 1000);
+     const result = await cloudinary.uploader.upload(req.file.path, {
+      public_id: `${currentTimeInSeconds}_event_image`,
+    });
+    let image_url = result.url
+    console.log("event image_url ---> ", image_url)
+    return res.status(200).json({ message: "uploaded image" , image_url: image_url});
+
+  } catch (error) {
+    console.log("error ----> ", error)
+    return res.status(500).json({ message: "Error uploading image" });
+
+  }
+}
+ 

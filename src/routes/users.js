@@ -1,3 +1,4 @@
+const multer = require('multer');
 const express = require("express");
 const router = express.Router();
 const tokenMiddleware = require("../middlewares/token.user.middleware");
@@ -5,6 +6,17 @@ const tokenMiddleware = require("../middlewares/token.user.middleware");
 const users = require("../controllers/usersController");
 
 //router.post("/add", users.addUser);
+const storage = multer.diskStorage({});
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb('invalid image file!', false);
+  }
+};
+const uploads = multer({ storage, fileFilter });
+router.post("/upload", tokenMiddleware, uploads.single('event_image'), users.uploadProfile);
+
 
 router.get("/user", tokenMiddleware, users.getTokenData);
 router.put("/update-user", tokenMiddleware, users.updateUser);

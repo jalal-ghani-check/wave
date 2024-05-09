@@ -60,10 +60,10 @@ exports.addPost = async (req, res) => {
   } catch (error) {
     if (error.code === "P2023") {
       return res.status(404).json({ message: "Invalid Id format" });
-    }
-  }
-  console.error(error);
+      }  
+      console.log(error)
   return res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 exports.deletePost = async (req, res) => {
