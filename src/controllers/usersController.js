@@ -423,8 +423,9 @@ exports.updatePassword = async (req, res) => {
 };
 
 exports.filterView = async (req, res) => {
-  const { categoryName, searchPost, userLat, userLon, distance } = req.body;
+  const { categoryName, searchPost, userLat, userLon, distance  } = req.body;
   try {
+    const userId = req.user.id 
     let searchResult;
     if (categoryName && searchPost) {
       searchResult = await prisma.post.findMany({ 
@@ -479,10 +480,13 @@ exports.filterView = async (req, res) => {
         return postDistance <= distance;
       });
     }
+
+   nearbyPosts =  nearbyPosts.filter((post)=> post.userId !==userId )
+
     res.json({ result: nearbyPosts });
   } catch (error) {
     console.error(error);
-   // res.status(500).json({ error: "Internal Server Error" });
+   res.status(500).json({ error: "Internal Server Error" });
   }
 };
 

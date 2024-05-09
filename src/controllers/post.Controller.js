@@ -300,7 +300,7 @@ exports.specificDistance = async (req, res) => {
         .json({ message: `Validation error: ${error.details[0].message}` });
     }
     const { userLat, userLon, distance } = value;
-
+    const userId = req.user.id;
     function haversineDistance(lat1, lon1, lat2, lon2) {
       const R = 6371e3; // Earth's radius in meters
       const φ1 = (lat1 * Math.PI) / 180; // φ, λ in radians
@@ -317,7 +317,7 @@ exports.specificDistance = async (req, res) => {
       return d;
     }
     const posts = await prisma.post.findMany();
-    const nearByPosts = posts.filter((post) => {
+    let nearByPosts = posts.filter((post) => {
       const postDistance = haversineDistance(
         userLat,
         userLon,
@@ -326,6 +326,9 @@ exports.specificDistance = async (req, res) => {
       );
       return postDistance <= distance;
     });
+
+    nearByPosts = nearByPosts.filter((post)=> post.userId !== userId)
+
     return res.status(200).json({
       message: "Posts found within the specified distance",
       posts: nearByPosts,

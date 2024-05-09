@@ -15,7 +15,7 @@ router.get("/:id", users.getOne);
 //router.delete("/:id", users.deleteUser);
 router.put("/forget-password", users.forgetPassword);
 router.put("/update-password", tokenMiddleware, users.updatePassword);
-router.post("/filters", users.filterView);
+router.post("/filters", tokenMiddleware, users.filterView);
 router.get("/filters-new-user/:days", users.lastAdded);
 router.post("/sendotp", users.otp);
 router.post("/logout", tokenMiddleware, users.logout);
