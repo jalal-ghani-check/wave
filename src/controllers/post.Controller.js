@@ -22,6 +22,7 @@ exports.addPost = async (req, res) => {
         id: userId,
       },
     });
+    
     const isCategory = await prisma.category.findUnique({
       where: {
         id: categoryId,
@@ -34,6 +35,10 @@ exports.addPost = async (req, res) => {
     if (!isUser) {
       return res.status(404).json({ message: "message User not found" });
     }
+
+    const postUserName = isUser.firstName + " "+ isUser.lastName
+    const postUserProfileImage = isUser.profile_image
+     
     const poste = await prisma.post.create({
       data: {
         title,
@@ -42,6 +47,8 @@ exports.addPost = async (req, res) => {
         longitude,
         latitude,
         userId,
+        postUserName,
+        postUserProfileImage,
         categoryId,
         categoryName,
       },

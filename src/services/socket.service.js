@@ -20,6 +20,7 @@ io.on("connection", (socket) => {
   try {
     const decoded = jwt.verify(token, secretKey);
     socket.userID = decoded.id;
+    console.log(socket.userID)
     socket.username = decoded.firstName;
     authenticatedUsers[socket.userID] = socket;
   } catch (error) {
@@ -79,16 +80,16 @@ io.on("connection", (socket) => {
       }
       const newChatMessage = await prisma.chatMessages.create({
         data: {
-          body: message,
+          messageBody: message,
           sender: { connect: { id: socket.userID } },
           receiver: { connect: { id: recipientId } },
           chat: { connect: { id: chatId } },
         },
       });
+
       if (recipientSocket) {
         recipientSocket.emit("privateMessage", {
-          senderId: socket.userID,
-          message: message,
+          message : newChatMessage
         });
         await sendCustomNotification(
           "A new Message ",

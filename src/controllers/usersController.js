@@ -427,9 +427,9 @@ exports.filterView = async (req, res) => {
   try {
     let searchResult;
     if (categoryName && searchPost) {
-      searchResult = await prisma.post.findMany({
+      searchResult = await prisma.post.findMany({ 
         where: {
-          categoryName: categoryName,
+          categoryName:   { in: categoryName}, 
           OR: [
             { title: { contains: searchPost, mode: "insensitive" } },
             { body: { contains: searchPost, mode: "insensitive" } },
@@ -439,7 +439,7 @@ exports.filterView = async (req, res) => {
     } else if (categoryName) {
       searchResult = await prisma.post.findMany({
         where: {
-          categoryName: categoryName,
+          categoryName:{in: categoryName},
         },
       });
     } else if (searchPost) {
@@ -482,7 +482,7 @@ exports.filterView = async (req, res) => {
     res.json({ result: nearbyPosts });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+   // res.status(500).json({ error: "Internal Server Error" });
   }
 };
 

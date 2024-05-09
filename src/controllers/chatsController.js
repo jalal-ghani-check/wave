@@ -19,7 +19,7 @@ exports.createChat = async (req, res) => {
     }
     const user1Id = req.user.id;
 
-    const { user2Id, postId } = value;
+    const { otherUserId, postId } = value;
     const user1 = await prisma.user.findUnique({
       where: {
         id: user1Id,
@@ -30,7 +30,7 @@ exports.createChat = async (req, res) => {
     }
     const user2 = await prisma.user.findUnique({
       where: {
-        id: user2Id,
+        id: otherUserId,
       },
     });
     if (!user2) {
@@ -54,12 +54,12 @@ exports.createChat = async (req, res) => {
     }
     const chat = post.chats.find(
       (chat) =>
-        (chat.senderId === user1Id && chat.receiverId === user2Id) ||
-        (chat.senderId === user2Id && chat.receiverId === user1Id)
+        (chat.senderId === user1Id && chat.receiverId === otherUserId) ||
+        (chat.senderId === otherUserId && chat.receiverId === user1Id)
     );
 
     if (chat) {
-      return res.status(400).json("Chat already exists between these users");
+      return res.status(200).json(chat);
     }
     const senderProfileImage = user1.profile_image;
     const senderFirstName = user1.firstName;
@@ -80,7 +80,7 @@ exports.createChat = async (req, res) => {
           connect: { id: user1Id },
         },
         receiver: {
-          connect: { id: user2Id },
+          connect: { id: otherUserId },
         },
         post: {
           connect: { id: postId },
@@ -109,17 +109,30 @@ exports.getUserContactList = async (req, res) => {
       where: {
         OR: [{ senderId: userId }, { receiverId: userId }],
       },
-      select: {
-        receiverId: true,
-        senderId: true,
+   include:
+   {
+    post: true,
+    messages: {
+      orderBy: {
+        createdAt: 'desc'  
       },
+      take: 1,  
+      select:
+      { 
+        id: true,
+        senderId: true,
+        receiverId: true,
+        messageBody: true,
+        createdAt: true,
+      }
+    }
+  
+    } 
     });
-
-    const uniqueIds = [
-      ...new Set(chats.flatMap((chat) => [chat.receiverId, chat.senderId])),
-    ];
-    const filteredIds = uniqueIds.filter((id) => id !== userId);
-    res.json({ userIds: filteredIds });
+    for (let chat of chats) {
+      chat.messages = chat.messages[0]
+    }
+      res.json({   chats: chats });
   } catch (error) {
     if (error.code === "P2023") {
       console.log("Invalid Id format");
