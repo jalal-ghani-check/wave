@@ -22,6 +22,11 @@ exports.addPost = async (req, res) => {
         id: userId,
       },
     });
+  
+   if (!isUser) {
+      return res.status(404).json({ message: "message User not found" });
+    }
+
     
     const isCategory = await prisma.category.findFirst({
       where: {
@@ -32,10 +37,6 @@ exports.addPost = async (req, res) => {
       return res.status(404).json({ message: "message Category not found" });
     }
     const categoryName = isCategory.name;
-    if (!isUser) {
-      return res.status(404).json({ message: "message User not found" });
-    }
-
     const postUserName = isUser.firstName + " "+ isUser.lastName
     const postUserProfileImage = isUser.profile_image
      

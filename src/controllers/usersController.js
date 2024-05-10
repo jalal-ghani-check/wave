@@ -428,7 +428,7 @@ exports.filterView = async (req, res) => {
   try {
     const userId = req.user.id 
     let searchResult;
-    if (categoryName && searchPost) {
+    if (categoryName.some((search)=> search !== "") && searchPost) {
       searchResult = await prisma.post.findMany({ 
         where: {
           categoryName:   { in: categoryName}, 
@@ -438,10 +438,10 @@ exports.filterView = async (req, res) => {
           ],
         },
       });
-    } else if (categoryName && categoryName.length !== 0) {
-      searchResult = await prisma.post.findMany({
+    } else if (categoryName &&  categoryName.some(search => search !== "")) {
+       searchResult = await prisma.post.findMany({
         where: {
-          categoryName:{in: categoryName},
+          categoryName:{in: categoryName.filter(search => search !== "")},
         },
       });
     } else if (searchPost) {
@@ -454,6 +454,7 @@ exports.filterView = async (req, res) => {
         },
       });
     } else {
+       
       searchResult = await prisma.post.findMany();
     }
     function haversineDistance(lat1, lon1, lat2, lon2) {
