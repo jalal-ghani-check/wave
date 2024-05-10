@@ -17,13 +17,13 @@ exports.addPost = async (req, res) => {
     }
     const { title, body, address, longitude, latitude, categoryId } = value;
     const userId = req.user.id;
-    const isUser = await prisma.user.findUnique({
+    const isUser = await prisma.user.findFirst({
       where: {
         id: userId,
       },
     });
     
-    const isCategory = await prisma.category.findUnique({
+    const isCategory = await prisma.category.findFirst({
       where: {
         id: categoryId,
       },
