@@ -7,5 +7,6 @@ const chatMessages = require("../controllers/chatsMessagesController");
 router.get("/get-chat/:id", chatMessages.getMessages);
 router.put("/update-chat/:id", tokenMiddleware, chatMessages.updateChatMessage);
 router.delete("/delete-chat/:id", chatMessages.deleteChatMessage);
+router.get("/get-single-message/:id", chatMessages.oneChatMessage);
 
 module.exports = router;

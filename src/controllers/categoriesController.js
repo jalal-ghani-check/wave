@@ -137,6 +137,7 @@ exports.SpecificCategory = async (req, res) => {
 exports.allcategories = async (req, res) => {
   try {
     const isCategory = await prisma.category.findMany();
+    const categoryCount = await prisma.category.count()   
 
     if (!isCategory) {
       return res.status(404).json({ message: "Category Not Found" });
@@ -144,7 +145,7 @@ exports.allcategories = async (req, res) => {
 
     return res
       .status(200)
-      .json({ message: "Message Fetched Successfully", data: isCategory });
+      .json({ message: "Message Fetched Successfully", data: isCategory , total : categoryCount});
   } catch (error) {
     console.log(error);
     console.log("Internal Server Error ");

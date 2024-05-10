@@ -125,13 +125,14 @@ exports.logIn = async (req, res) => {
 exports.getAllUser = async (req, res) => {
   try {
     const getUser = await prisma.user.findMany();
-    const hidePassword = getUser.map((user) => {
+    const userCount = await prisma.user.count()   
+   const hidePassword = getUser.map((user) => {
       const { password, ...hidePassword } = user;
       return hidePassword;
     });
     res
       .status(200)
-      .json({ message: "Successfully Fetched users", user: hidePassword });
+      .json({ message: "Successfully Fetched users", user: hidePassword , total:userCount });
   } catch (error) {
     console.error(error);
   }
@@ -437,7 +438,7 @@ exports.filterView = async (req, res) => {
           ],
         },
       });
-    } else if (categoryName) {
+    } else if (categoryName && categoryName.length !== 0) {
       searchResult = await prisma.post.findMany({
         where: {
           categoryName:{in: categoryName},

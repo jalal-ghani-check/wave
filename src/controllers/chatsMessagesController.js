@@ -13,6 +13,8 @@ exports.getMessages = async function getChatMessagesByChatId(req, res) {
         createdAt: "asc",
       },
     });
+    const chatMessagesCount = await prisma.chatMessages.count()   
+
 
     if (chatMessages.length === 0) {
       return res
@@ -20,7 +22,7 @@ exports.getMessages = async function getChatMessagesByChatId(req, res) {
         .json({ error: "No chat messages found for this Chat Id" });
     }
     console.log(chatMessages);
-    return res.status(200).json({ message: chatMessages });
+    return res.status(200).json({ message: chatMessages , total : chatMessagesCount});
   } catch (error) {
     if (error.code === "P2023") {
       return res.status(404).json({ error: "Invalid Chat Id" });
@@ -48,7 +50,7 @@ exports.updateChatMessage = async function getChatMessagesByChatId(req, res) {
       return res.status(404).json({ message: "Chat Message not found" });
     }
     const isAuthorized =
-      isMessage.sender.id === userId || isMessage.receiver.id === userId;
+      isMessage.sender.id === userId // || isMessage.receiver.id === userId;
 
     if (!isAuthorized) {
       return res
@@ -61,7 +63,7 @@ exports.updateChatMessage = async function getChatMessagesByChatId(req, res) {
         id: messageId,
       },
       data: {
-        body: newBody,
+        messageBody: newBody,
       },
     });
     return res.status(200).json({ updatedMessage: newMessage });
@@ -70,8 +72,8 @@ exports.updateChatMessage = async function getChatMessagesByChatId(req, res) {
       return res.status(404).json({ error: "Invalid Chat Message Id" });
     }
     console.error(error);
-    //throw error;
-  }
+    return res.status(500).json({ error: "Internal Server Error" });
+   }
 };
 
 exports.deleteChatMessage = async function getChatMessagesByChatId(req, res) {
@@ -98,3 +100,29 @@ exports.deleteChatMessage = async function getChatMessagesByChatId(req, res) {
     console.error(error);
   }
 };
+
+exports.oneChatMessage = async function oneChatMessage(req,res){
+  
+  try {
+    const chatMessageId = req.params.id;
+    const isMessage = await prisma.chatMessages.findUnique({
+      where: {
+        id: chatMessageId,
+      },
+    });
+
+    if (!isMessage) {
+      return res.status(404).json({ message: "Message Not Found" });
+    }
+    return res
+      .status(200)
+      .json({ message: "Message Fetched Successfully", data: isMessage });
+  } catch (error) {
+    if (error.code === "P2023") {
+      return res.status(404).json({ message: "Invalid Id format" });
+    }
+      console.log(error);
+      return res.status(500).json({ error: "Internal Server Error" });   
+   
+  }
+}
