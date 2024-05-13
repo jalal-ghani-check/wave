@@ -18,7 +18,7 @@ exports.getMessages = async function getChatMessagesByChatId(req, res) {
 
     if (chatMessages.length === 0) {
       return res
-        .status(404)
+        .status(200)
         .json({ error: "No chat messages found for this Chat Id" });
     }
     console.log(chatMessages);

@@ -20,7 +20,9 @@ io.on("connection", (socket) => {
   try {
     const decoded = jwt.verify(token, secretKey);
     socket.userID = decoded.id;
-    console.log(socket.userID)
+    //   console.log(socket.userID)
+    socket.emit("Online", socket.userID);
+
     socket.username = decoded.firstName;
     authenticatedUsers[socket.userID] = socket;
   } catch (error) {
@@ -89,15 +91,24 @@ io.on("connection", (socket) => {
 
       if (recipientSocket) {
         recipientSocket.emit("privateMessage", {
-          message : newChatMessage
+          message: newChatMessage
         });
+
+        socket.emit("Acknowledgment", {
+          message: newChatMessage
+        });
+
         await sendCustomNotification(
           "A new Message ",
           `A new message came from ${socket.userID}`,
           recipientSocket.token
         );
       } else {
-        socket.emit("errorMessage", "Recipient is offline");
+        socket.emit("Acknowledgment", {
+          message: newChatMessage
+        });
+
+        //socket.emit("errorMessage", "Recipient is offline");
       }
     } catch (error) {
       if (error.code === "P2023") {
@@ -108,7 +119,13 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", async () => {
-    delete authenticatedUsers[socket.userID];
-    socket.broadcast.emit("userDisconnected", socket.userID);
+    console.log("User disconnected:", socket.userID); 
+      delete authenticatedUsers[socket.userID];
+    socket.emit("Offline");
+    socket.userID = null;
+    console.log("User disconnected:", socket.userID); 
+
   });
 });
+
+// console.log(socket.userID)
