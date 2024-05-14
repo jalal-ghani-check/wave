@@ -109,30 +109,45 @@ exports.getUserContactList = async (req, res) => {
       where: {
         OR: [{ senderId: userId }, { receiverId: userId }],
       },
-   include:
-   {
-    post: true,
-    messages: {
-      orderBy: {
-        createdAt: 'desc'  
-      },
-      take: 1,  
-      select:
-      { 
-        id: true,
-        senderId: true,
-        receiverId: true,
-        messageBody: true,
-        createdAt: true,
+      include:
+      {
+        post: true,
+        messages: {
+          orderBy: {
+            createdAt: 'desc'
+          },
+          take: 1,
+          select:
+          {
+            id: true,
+            senderId: true,
+            receiverId: true,
+            messageBody: true,
+            read: true,
+            createdAt: true,
+          } 
+
+        }
+
       }
-    }
-  
-    } 
     });
+
     for (let chat of chats) {
+       const unreadCount = await prisma.chatMessages.count({
+        where: {
+          chatId: chat.id,
+          read: false
+        }
+      });
+      chat.unreadCount = unreadCount;
       chat.messages = chat.messages[0]
+
     }
-      res.json({   chats: chats });
+     
+    // for (let chat of chats) {
+    //   chat.messages = chat.messages[0]
+    // }
+    res.json({ chats: chats });
   } catch (error) {
     if (error.code === "P2023") {
       console.log("Invalid Id format");

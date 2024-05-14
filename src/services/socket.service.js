@@ -20,14 +20,14 @@ io.on("connection", (socket) => {
   try {
     const decoded = jwt.verify(token, secretKey);
     socket.userID = decoded.id;
-    //   console.log(socket.userID)
     socket.emit("Online", socket.userID);
 
     socket.username = decoded.firstName;
     authenticatedUsers[socket.userID] = socket;
   } catch (error) {
     if (error.message === "jwt expired") {
-      console.log("Token Has Expired");
+      socket.emit("errorMessage", "Token Has Expired");
+
     }
     socket.emit("errorMessage", "Invalid or expired token");
     return;
@@ -45,6 +45,7 @@ io.on("connection", (socket) => {
         socket.emit("errorMessage", "Invalid Chat ID");
         return;
       }
+
       const existingChat = await prisma.chat.findFirst({
         where: {
           AND: [
@@ -78,7 +79,7 @@ io.on("connection", (socket) => {
       }
 
       if (existingChat) {
-        chatId = existingChat.id;
+         chatId = existingChat.id;
       }
       const newChatMessage = await prisma.chatMessages.create({
         data: {
@@ -110,6 +111,9 @@ io.on("connection", (socket) => {
 
         //socket.emit("errorMessage", "Recipient is offline");
       }
+
+
+
     } catch (error) {
       if (error.code === "P2023") {
         console.error("Invalid Id Format");
@@ -118,14 +122,63 @@ io.on("connection", (socket) => {
     }
   });
 
+
+  socket.on("ChatOpened", async (body) => {
+
+
+
+    if (!body.chatId) {
+      socket.emit("errorMessage", "Chat ID is required");
+      return;
+    }
+    if (typeof body.chatId !== "string" || body.chatId.length !== 24) {
+      socket.emit("errorMessage", "Invalid Chat ID format");
+      return;
+    }
+    const existingChat = await prisma.chat.findFirst({
+      where: {
+        AND: [
+          { id: body.chatId },
+          {
+            OR: [
+              { senderId: socket.userID },
+              { receiverId: socket.userID },
+            ],
+          },
+        ],
+      },
+    });
+
+    if (!existingChat) {
+      socket.emit("errorMessage", "Chat does not exist or does not involve the user");
+      return;
+    }
+    try {
+      const messageRead = await prisma.chatMessages.updateMany({
+        where:
+        {
+          chatId: body.chatId,
+          read: false,
+        },
+        data:
+        {
+          read: true
+        }
+      })
+
+      socket.emit("messagesRead", `You have read all ${messageRead.count} new messages.`);
+    }
+    catch (error) {
+      socket.emit("errorMessage", "Error making messages as read");
+    }
+  })
+
   socket.on("disconnect", async () => {
-    console.log("User disconnected:", socket.userID); 
-      delete authenticatedUsers[socket.userID];
+    delete authenticatedUsers[socket.userID];
     socket.emit("Offline");
     socket.userID = null;
-    console.log("User disconnected:", socket.userID); 
 
   });
 });
 
-// console.log(socket.userID)
+
