@@ -20,7 +20,7 @@ io.on("connection", (socket) => {
   try {
     const decoded = jwt.verify(token, secretKey);
     socket.userID = decoded.id;
-    socket.emit("Online", socket.userID);
+    socket.broadcast.emit("Online",`A new user has joined with ID: ${socket.userID} `);
 
     socket.username = decoded.firstName;
     authenticatedUsers[socket.userID] = socket;
@@ -169,9 +169,10 @@ io.on("connection", (socket) => {
   })
 
   socket.on("disconnect", async () => {
+    socket.broadcast.emit("Offline",`A user has gone with ID: ${socket.userID} `);
     delete authenticatedUsers[socket.userID];
-    socket.emit("Offline");
-    socket.userID = null;
+   // socket.emit("Offline");
+   // socket.userID = null;
 
   });
 });
