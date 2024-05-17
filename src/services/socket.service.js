@@ -79,7 +79,7 @@ io.on("connection", (socket) => {
       }
 
       if (existingChat) {
-         chatId = existingChat.id;
+        chatId = existingChat.id;
       }
       const newChatMessage = await prisma.chatMessages.create({
         data: {
@@ -112,8 +112,6 @@ io.on("connection", (socket) => {
         //socket.emit("errorMessage", "Recipient is offline");
       }
 
-
-
     } catch (error) {
       if (error.code === "P2023") {
         console.error("Invalid Id Format");
@@ -122,11 +120,7 @@ io.on("connection", (socket) => {
     }
   });
 
-
   socket.on("ChatOpened", async (body) => {
-
-
-
     if (!body.chatId) {
       socket.emit("errorMessage", "Chat ID is required");
       return;
@@ -158,6 +152,7 @@ io.on("connection", (socket) => {
         where:
         {
           chatId: body.chatId,
+          receiverId: socket.userID,
           read: false,
         },
         data:
@@ -180,5 +175,3 @@ io.on("connection", (socket) => {
 
   });
 });
-
-

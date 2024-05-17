@@ -136,6 +136,7 @@ exports.getUserContactList = async (req, res) => {
        const unreadCount = await prisma.chatMessages.count({
         where: {
           chatId: chat.id,
+          receiverId : userId,
           read: false
         }
       });
