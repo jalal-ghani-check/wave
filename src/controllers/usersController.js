@@ -48,11 +48,11 @@ exports.signUp = async (req, res) => {
         profile_image: value?.profile_image,
       },
     });
-    delete user.password;
-   const jwtToken = Jwt.sign({ user }, process.env.SECRETKEY,
+   const jwtToken = Jwt.sign( user  , process.env.SECRETKEY,
     {
       expiresIn: process.env.JWT_Expiry,
     });
+    delete user.password;
 
     return res
       .status(201)

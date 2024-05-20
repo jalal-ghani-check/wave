@@ -15,15 +15,15 @@ exports.addPost = async (req, res) => {
         .status(400)
         .json({ message: `Validation error: ${error.details[0].message}` });
     }
-    const { title, body, address, longitude, latitude, categoryId } = value;
-    const userId = req.user.id;
-    const isUser = await prisma.user.findFirst({
+    const { title, body, longitude, latitude, categoryId } = value;
+     const userId = req.user.id;
+     const isUser = await prisma.user.findFirst({
       where: {
         id: userId,
       },
     });
   
-   if (!isUser) {
+    if (!isUser) {
       return res.status(404).json({ message: "message User not found" });
     }
 
@@ -44,7 +44,6 @@ exports.addPost = async (req, res) => {
       data: {
         title,
         body,
-        address,
         longitude,
         latitude,
         userId,
@@ -124,7 +123,7 @@ exports.updatePost = async (req, res) => {
     }
     const userId = req.user.id;
 
-    const { title, body, address, longitude, latitude, categoryId } = value;
+    const { title, body, longitude, latitude, categoryId } = value;
 
     const postId = req.params.id;
     const isPost = await prisma.post.findUnique({
@@ -162,8 +161,7 @@ exports.updatePost = async (req, res) => {
       data: {
         title: title,
         body: body,
-        address: address,
-        longitude: longitude,
+         longitude: longitude,
         latitude: latitude,
         categoryId: categoryId,
       },

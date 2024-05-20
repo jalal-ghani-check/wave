@@ -69,7 +69,6 @@ model Post {
   body String
   latitude Float    @default(00.000)
   longitude Float @default(00.000)
-  address String   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt 
   chats Chat[]  

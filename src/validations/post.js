@@ -6,8 +6,7 @@ function postScheema(user) {
     body: Joi.string().min(3).max(200).required(),
     longitude: Joi.number().required(),
     latitude: Joi.number().required(),
-    address: Joi.string().required(),
-
+ 
     categoryId: Joi.string().required(),
   });
   const { error, value } = postSchema.validate(user);
@@ -20,8 +19,7 @@ function postUpdate(user) {
     body: Joi.string().min(3).max(200).optional(),
     longitude: Joi.number().optional(),
     latitude: Joi.number().optional(),
-    address: Joi.string().optional(),
-    categoryId: Joi.string().allow(null).optional(),
+     categoryId: Joi.string().allow(null).optional(),
   });
   const { error, value } = postUpdateSchema.validate(user);
   return { error, value };
