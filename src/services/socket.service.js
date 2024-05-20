@@ -20,7 +20,7 @@ io.on("connection", (socket) => {
   try {
     const decoded = jwt.verify(token, secretKey);
     socket.userID = decoded.id;
-    socket.broadcast.emit("Online",`A new user has joined with ID: ${socket.userID} `);
+    socket.broadcast.emit("Online", { userId: socket.userID });
 
     socket.username = decoded.firstName;
     authenticatedUsers[socket.userID] = socket;
@@ -81,6 +81,19 @@ io.on("connection", (socket) => {
       if (existingChat) {
         chatId = existingChat.id;
       }
+
+      const chatt = await prisma.chat.findFirst({
+        where:
+        {
+          id: existingChat.id,
+        },
+        include:
+        {
+          post: true,
+
+        }
+      })
+      console.log(chatt)
       const newChatMessage = await prisma.chatMessages.create({
         data: {
           messageBody: message,
@@ -96,7 +109,7 @@ io.on("connection", (socket) => {
         });
 
         socket.emit("Acknowledgment", {
-          message: newChatMessage
+          message: newChatMessage, chat: chatt
         });
 
         await sendCustomNotification(
@@ -106,7 +119,7 @@ io.on("connection", (socket) => {
         );
       } else {
         socket.emit("Acknowledgment", {
-          message: newChatMessage
+          message: newChatMessage, chat: chatt
         });
 
         //socket.emit("errorMessage", "Recipient is offline");
@@ -169,10 +182,7 @@ io.on("connection", (socket) => {
   })
 
   socket.on("disconnect", async () => {
-    socket.broadcast.emit("Offline",`A user has gone with ID: ${socket.userID} `);
+    socket.broadcast.emit("Offline", { userId: socket.userID });
     delete authenticatedUsers[socket.userID];
-   // socket.emit("Offline");
-   // socket.userID = null;
-
   });
 });

@@ -252,8 +252,8 @@ exports.getPostsByUserId = async (req, res) => {
     });
     if (posts.length === 0) {
       return res
-        .status(404)
-        .json({ message: "No posts found for the specified User" });
+        .status(200)
+        .json({ message: "No posts found for the specified User" , data: posts});
     }
     return res
       .status(200)
@@ -277,8 +277,8 @@ exports.getPostsByCategoryId = async (req, res) => {
     });
     if (posts.length === 0) {
       return res
-        .status(404)
-        .json({ message: "No posts found for the specified category" });
+        .status(200)
+        .json({ message: "No posts found for the specified category",data: posts });
     }
     return res
       .status(200)
@@ -363,8 +363,8 @@ exports.SearchPosts = async (req, res) => {
     });
     if (isPost.length === 0) {
       return res
-        .status(404)
-        .json({ message: "No posts found matching your search." });
+        .status(200)
+        .json({ message: "No posts found matching your search.",data: isPost });
     }
     return res
       .status(200)
