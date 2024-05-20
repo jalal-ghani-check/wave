@@ -9,7 +9,7 @@ const { io } = require("../../index");
 dotenv.config();
 const secretKey = process.env.SECRETKEY;
 let authenticatedUsers = {};
-io.on("connection", (socket) => {
+io.on("connection", async (socket) => {
   socket.emit("helloWithoutJwt", "Welcome to the app. But, you are not an Authenticated user!!");
 
   const token = socket.handshake.headers.authorization;
@@ -21,6 +21,16 @@ io.on("connection", (socket) => {
     const decoded = jwt.verify(token, secretKey);
     socket.userID = decoded.id;
     socket.broadcast.emit("Online", { userId: socket.userID });
+     await prisma.user.update({
+      where:
+      {
+        id:socket.userID
+      },
+      data:
+      {
+        onlineStatus: "online"
+      }
+    })
 
     socket.username = decoded.firstName;
     authenticatedUsers[socket.userID] = socket;
@@ -35,6 +45,7 @@ io.on("connection", (socket) => {
 
   socket.emit("helloWithJwt", "Welcome to the app. You are now Authenticated user!");
   socket.on("privateMessage", async ({ recipientId, message, chatId }) => {
+
     const recipientSocket = authenticatedUsers[recipientId];
     try {
       if (!chatId) {
@@ -81,6 +92,7 @@ io.on("connection", (socket) => {
       if (existingChat) {
         chatId = existingChat.id;
       }
+
 
       const chatt = await prisma.chat.findFirst({
         where:
@@ -183,6 +195,16 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", async () => {
     socket.broadcast.emit("Offline", { userId: socket.userID });
+    await prisma.user.update({
+      where:
+      {
+        id:socket.userID
+      },
+      data:
+      {
+        onlineStatus: "offline"
+      }
+    })
     delete authenticatedUsers[socket.userID];
   });
 });

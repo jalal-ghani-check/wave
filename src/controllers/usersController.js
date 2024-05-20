@@ -46,12 +46,15 @@ exports.signUp = async (req, res) => {
         postalCode: value.postalCode,
         phoneNumber: value.phoneNumber,
         profile_image: value?.profile_image,
+        postalCode: value.postalCode,
+        postalCode: value.postalCode,
+        firebaseToken: value?.firebaseToken
       },
     });
-   const jwtToken = Jwt.sign( user  , process.env.SECRETKEY,
-    {
-      expiresIn: process.env.JWT_Expiry,
-    });
+    const jwtToken = Jwt.sign(user, process.env.SECRETKEY,
+      {
+        expiresIn: process.env.JWT_Expiry,
+      });
     delete user.password;
 
     return res
@@ -125,14 +128,14 @@ exports.logIn = async (req, res) => {
 exports.getAllUser = async (req, res) => {
   try {
     const getUser = await prisma.user.findMany();
-    const userCount = await prisma.user.count()   
-   const hidePassword = getUser.map((user) => {
+    const userCount = await prisma.user.count()
+    const hidePassword = getUser.map((user) => {
       const { password, ...hidePassword } = user;
       return hidePassword;
     });
     res
       .status(200)
-      .json({ message: "Successfully Fetched users", user: hidePassword , total:userCount });
+      .json({ message: "Successfully Fetched users", user: hidePassword, total: userCount });
   } catch (error) {
     console.error(error);
   }
@@ -303,11 +306,11 @@ exports.forgetPassword = async (req, res) => {
     if (!existingUser) {
       return res.status(400).json({ message: "User email Not Exists  " });
     }
-  
-      const saltRound = process.env.saltRounds;
-      var hashPassword = await bcrypt.hash(newPassword, parseInt(saltRound));
 
-      
+    const saltRound = process.env.saltRounds;
+    var hashPassword = await bcrypt.hash(newPassword, parseInt(saltRound));
+
+
     const isOtp = await prisma.otp.findFirst({
       where: {
         receiver_email: email,
@@ -424,24 +427,24 @@ exports.updatePassword = async (req, res) => {
 };
 
 exports.filterView = async (req, res) => {
-  const { categoryName, searchPost, userLat, userLon, distance  } = req.body;
+  const { categoryName, searchPost, userLat, userLon, distance } = req.body;
   try {
-    const userId = req.user.id 
+    const userId = req.user.id
     let searchResult;
-    if (categoryName.some((search)=> search !== "") && searchPost) {
-      searchResult = await prisma.post.findMany({ 
+    if (categoryName.some((search) => search !== "") && searchPost) {
+      searchResult = await prisma.post.findMany({
         where: {
-          categoryName:   { in: categoryName}, 
+          categoryName: { in: categoryName },
           OR: [
             { title: { contains: searchPost, mode: "insensitive" } },
             { body: { contains: searchPost, mode: "insensitive" } },
           ],
         },
       });
-    } else if (categoryName &&  categoryName.some(search => search !== "")) {
-       searchResult = await prisma.post.findMany({
+    } else if (categoryName && categoryName.some(search => search !== "")) {
+      searchResult = await prisma.post.findMany({
         where: {
-          categoryName:{in: categoryName.filter(search => search !== "")},
+          categoryName: { in: categoryName.filter(search => search !== "") },
         },
       });
     } else if (searchPost) {
@@ -454,7 +457,7 @@ exports.filterView = async (req, res) => {
         },
       });
     } else {
-       
+
       searchResult = await prisma.post.findMany();
     }
     function haversineDistance(lat1, lon1, lat2, lon2) {
@@ -483,12 +486,12 @@ exports.filterView = async (req, res) => {
       });
     }
 
-   nearbyPosts =  nearbyPosts.filter((post)=> post.userId !==userId )
+    nearbyPosts = nearbyPosts.filter((post) => post.userId !== userId)
 
     res.json({ result: nearbyPosts });
   } catch (error) {
     console.error(error);
-   res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -591,7 +594,7 @@ exports.logout = async (req, res) => {
 // controller
 exports.uploadProfile = async (req, res) => {
   try {
-      const userId = req.user.id;
+    const userId = req.user.id;
     const currentTimeInMilliseconds = new Date().getTime();
     let user = await prisma.user.findFirst({
       where: {
@@ -607,12 +610,12 @@ exports.uploadProfile = async (req, res) => {
     }
     // Convert milliseconds to seconds
     const currentTimeInSeconds = Math.floor(currentTimeInMilliseconds / 1000);
-     const result = await cloudinary.uploader.upload(req.file.path, {
+    const result = await cloudinary.uploader.upload(req.file.path, {
       public_id: `${currentTimeInSeconds}_event_image`,
     });
     let image_url = result.url
     console.log("event image_url ---> ", image_url)
-    return res.status(200).json({ message: "uploaded image" , image_url: image_url});
+    return res.status(200).json({ message: "uploaded image", image_url: image_url });
 
   } catch (error) {
     console.log("error ----> ", error)
@@ -620,4 +623,25 @@ exports.uploadProfile = async (req, res) => {
 
   }
 }
- 
+
+exports.onlineUsers = async (req, res) => {
+  try {
+    const getOnlineUser = await prisma.user.findMany({
+      where:
+      {
+        onlineStatus: "online"
+      },
+      select:
+      {
+        id: true
+      }
+    });
+    return res
+      .status(200)
+      .json({ message: "List of online users : ", OnlineUsers: getOnlineUser[0] });
+
+  }
+  catch (error) {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}

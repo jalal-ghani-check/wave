@@ -17,6 +17,7 @@ function validateUserSignUp(user) {
     postalCode: Joi.string().required(),
     phoneNumber: Joi.string().required(),
     profile_image: Joi.string().optional(),
+    firebaseToken : Joi.string().optional(),
   });
   const { error, value } = usersignUpSchema.validate(user);
   return { error, value };
@@ -39,6 +40,7 @@ function validateUserUpdate(user) {
     postalCode: Joi.string().optional(),
     phoneNumber: Joi.string().optional(),
     profile_image: Joi.string().optional(),
+    firebaseToken : Joi.string().optional(),
   });
 
   const { error, value } = userUpdateSchema.validate(user);
@@ -82,7 +84,8 @@ function validateLogin(user) {
       .min(8)
       .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*]).*$/)
       .message("please enter correct password")
-      .required(),
+      .required(),      
+    firebaseToken : Joi.string().optional(),
   });
 
   const { error, value } = emailSchema.validate(user);

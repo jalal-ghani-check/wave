@@ -17,6 +17,7 @@ const fileFilter = (req, file, cb) => {
 const uploads = multer({ storage, fileFilter });
 router.post("/upload", tokenMiddleware, uploads.single('event_image'), users.uploadProfile);
 
+router.get("/online-users", users.onlineUsers);
 
 router.get("/user", tokenMiddleware, users.getTokenData);
 router.put("/update-user", tokenMiddleware, users.updateUser);
