@@ -32,4 +32,7 @@ router.post("/filters", tokenMiddleware, users.filterView);
 router.get("/filters-new-user/:days", users.lastAdded);
 router.post("/sendotp", users.otp);
 router.post("/logout", tokenMiddleware, users.logout);
+router.put("/update-firebase-token", tokenMiddleware, users.updateFirebaseToken);
+
+
 module.exports = router;

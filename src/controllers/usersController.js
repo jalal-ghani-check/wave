@@ -11,6 +11,7 @@ const {
   validateForgetPassword,
   validateUpdatePassword,
   validateLogin,
+  validateNewFirebaseToken,
 } = require("../validations/users");
 const { start } = require("repl");
 require("dotenv").config();
@@ -84,39 +85,62 @@ exports.logIn = async (req, res) => {
       .status(400)
       .json({ message: `Validation error: ${error.details[0].message}` });
   }
-  const user = await prisma.user.findUnique({
+  const isUser = await prisma.user.findUnique({
     where: {
       email: req.body.email,
     },
   });
-  if (user) {
+  if (isUser) {
     const isPasswordMatch = await bcrypt.compare(
       req.body.password,
-      user.password
+      isUser.password
     );
     if (isPasswordMatch) {
+
+      if (req.body.firebaseToken) {
+        try {
+          const loginWithToken = await prisma.user.update({
+            where:
+            {
+              id: isUser.id
+            },
+            data:
+            {
+              firebaseToken: req.body.firebaseToken
+            }
+          })
+
+          isUser.firebaseToken = loginWithToken.firebaseToken
+        }
+        catch (updateError) {
+          console.error("Error updating Firebase token:", updateError);
+          return res.status(500).json({ message: "Error updating Firebase token" });
+        }
+      }
       const jwtToken = Jwt.sign(
         {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          dateOfBirth: user.dateOfBirth,
-          address: user.address,
-          city: user.city,
-          country: user.country,
-          postalCode: user.postalCode,
-          phoneNumber: user.phoneNumber,
+          id: isUser.id,
+          email: isUser.email,
+          firstName: isUser.firstName,
+          lastName: isUser.lastName,
+          dateOfBirth: isUser.dateOfBirth,
+          address: isUser.address,
+          city: isUser.city,
+          country: isUser.country,
+          postalCode: isUser.postalCode,
+          phoneNumber: isUser.phoneNumber,
+          firebaseToken: isUser.firebaseToken,
         },
         process.env.SECRETKEY,
         {
           expiresIn: process.env.JWT_Expiry,
         }
       );
-      delete user.password;
+
+      delete isUser.password;
       res
         .status(200)
-        .json({ message: "login successful", user, token: jwtToken });
+        .json({ message: "login successful", isUser, token: jwtToken });
     } else {
       res.status(401).json({ message: "Invalid password" });
     }
@@ -127,7 +151,7 @@ exports.logIn = async (req, res) => {
 
 exports.getAllUser = async (req, res) => {
   try {
-    const getUser = await prisma.user.findMany();
+    const getUser = await prisma.user.findMany(); 
     const userCount = await prisma.user.count()
     const hidePassword = getUser.map((user) => {
       const { password, ...hidePassword } = user;
@@ -591,7 +615,6 @@ exports.logout = async (req, res) => {
   }
 };
 
-// controller
 exports.uploadProfile = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -644,4 +667,36 @@ exports.onlineUsers = async (req, res) => {
   catch (error) {
     return res.status(500).json({ error: "Internal server error" });
   }
+}
+
+
+exports.updateFirebaseToken = async (req, res) => {
+  try {
+    const { error, value } = validateNewFirebaseToken(req.body);
+    if (error) {
+      return res
+        .status(400)
+        .json({ message: `Validation error: ${error.details[0].message}` });
+    }
+
+    const userId = req.user.id;
+    const firebaseToken = value.firebaseToken;  
+    const updateToken = await prisma.user.update({
+      where:
+      {
+        id: userId,
+      },
+      data:
+      {
+        firebaseToken
+      }
+    })
+    return res
+    .status(200)
+    .json({ message: "Token updated successfully ", FirebaseToken: updateToken.firebaseToken });
+  }
+  catch {
+    return res.status(500).json({ error: "Internal server error in update firebase token" });
+  }
+ 
 }

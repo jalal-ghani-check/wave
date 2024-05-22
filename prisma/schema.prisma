@@ -22,7 +22,7 @@ model User {
   country String 
   postalCode String
   phoneNumber String 
-  firebaseToken String? @default("")
+  firebaseToken String @default("")
   onlineStatus String @default("offline")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

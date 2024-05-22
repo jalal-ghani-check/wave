@@ -21,10 +21,10 @@ io.on("connection", async (socket) => {
     const decoded = jwt.verify(token, secretKey);
     socket.userID = decoded.id;
     socket.broadcast.emit("Online", { userId: socket.userID });
-     await prisma.user.update({
+    await prisma.user.update({
       where:
       {
-        id:socket.userID
+        id: socket.userID
       },
       data:
       {
@@ -105,7 +105,8 @@ io.on("connection", async (socket) => {
 
         }
       })
-      console.log(chatt)
+
+
       const newChatMessage = await prisma.chatMessages.create({
         data: {
           messageBody: message,
@@ -119,20 +120,34 @@ io.on("connection", async (socket) => {
         recipientSocket.emit("privateMessage", {
           message: newChatMessage
         });
-
         socket.emit("Acknowledgment", {
           message: newChatMessage, chat: chatt
         });
 
-        await sendCustomNotification(
-          "A new Message ",
-          `A new message came from ${socket.userID}`,
-          recipientSocket.token
-        );
+
       } else {
+
+        const userWithFirebaseToken = await prisma.user.findFirst({
+          where:
+          {
+            id: recipientId
+          },
+          select:
+          {
+            firebaseToken: true
+          }
+        })
+
         socket.emit("Acknowledgment", {
           message: newChatMessage, chat: chatt
         });
+        await sendCustomNotification(
+          chatt.post.title,
+          newChatMessage.messageBody,
+          newChatMessage,
+          userWithFirebaseToken.firebaseToken
+        );
+
 
         //socket.emit("errorMessage", "Recipient is offline");
       }
@@ -198,7 +213,7 @@ io.on("connection", async (socket) => {
     await prisma.user.update({
       where:
       {
-        id:socket.userID
+        id: socket.userID
       },
       data:
       {

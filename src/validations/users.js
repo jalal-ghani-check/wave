@@ -5,8 +5,7 @@ function validateUserSignUp(user) {
     email: Joi.string().email().required(),
     password: Joi.string()
       .min(8)
-      .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*]).*$/)
-      .message("please enter correct password")
+      .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*]).*$/) 
       .required(),
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
@@ -83,12 +82,20 @@ function validateLogin(user) {
     password: Joi.string()
       .min(8)
       .pattern(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*]).*$/)
-      .message("please enter correct password")
       .required(),      
-    firebaseToken : Joi.string().optional(),
+    firebaseToken : Joi.string().min(0).optional(),
   });
 
   const { error, value } = emailSchema.validate(user);
+  return { error, value };
+}
+
+function validateNewFirebaseToken(user) {
+  const validateNewBodyToken = Joi.object({
+    firebaseToken: Joi.string().required(),
+  });
+
+  const { error, value } = validateNewBodyToken.validate(user);
   return { error, value };
 }
 
@@ -98,4 +105,5 @@ module.exports = {
   validateForgetPassword,
   validateUpdatePassword,
   validateLogin,
+  validateNewFirebaseToken
 };

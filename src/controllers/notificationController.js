@@ -4,14 +4,16 @@ const {
   sendNotification,
 } = require("../services/firebase-notifications.service");
 
-exports.sendCustomNotification = async (title, body, token, res) => {
+exports.sendCustomNotification = async (title, body, payload, token, res) => {
   try {
     const pushNotification = {
       notification: {
         title: title,
         body: body,
       },
-      data: {},
+      data: {
+        payload : payload
+      },
       token: token,
     };
     await sendNotification(pushNotification);
