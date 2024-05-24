@@ -11,10 +11,7 @@ const socket = require("./src/services/socket.service");
 
 const port = process.env.PORT;
 
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  next();
-});
+app.use(cors());
 
 app.use(express.json());
 
