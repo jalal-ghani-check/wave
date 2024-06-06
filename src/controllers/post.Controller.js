@@ -219,13 +219,13 @@ exports.allPosts = async (req, res) => {
       },
     });
 
-    const isDelete = await prisma.post.deleteMany({
-      where: {
-        createdAt: {
-          lt: today,
-        },
-      },
-    });
+    // const isDelete = await prisma.post.deleteMany({
+    //   where: {
+    //     createdAt: {
+    //       lt: today,
+    //     },
+    //   },
+    // });
 
     if (!isPost) {
       return res.status(404).json({ message: "Post Not Found" });
@@ -326,7 +326,7 @@ exports.specificDistance = async (req, res) => {
       return postDistance <= distance;
     });
 
-    nearByPosts = nearByPosts.filter((post)=> post.userId !== userId)
+    nearByPosts = nearByPosts.filter((post)=> post.userId) // !== userId)
 
     return res.status(200).json({
       message: "Posts found within the specified distance",
