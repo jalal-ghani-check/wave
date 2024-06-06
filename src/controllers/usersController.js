@@ -510,7 +510,7 @@ exports.filterView = async (req, res) => {
       });
     }
 
-    nearbyPosts = nearbyPosts.filter((post) => post.userId !== userId)
+    nearbyPosts = nearbyPosts.filter((post) => post.userId )// !== userId)
 
     res.json({ result: nearbyPosts });
   } catch (error) {
