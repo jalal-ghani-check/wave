@@ -2,8 +2,8 @@ const prisma = require("../configs/databaseConfig");
 const jwt = require("jsonwebtoken");
 const { postScheema, postUpdate, postRadius } = require("../validations/post");
 
-const express = require("express");
-const app = express();
+const express = require("express"); 
+const { io } = require("../../index");
 
 require("dotenv").config();
 
@@ -53,6 +53,8 @@ exports.addPost = async (req, res) => {
         categoryName,
       },
     });
+
+    io.emit("newPostNotification", { message: "Post created successfully", data: poste });
     return res.status(201).json({
       message: "Post created successfully",
       data: poste,
