@@ -21,7 +21,7 @@ exports.getMessages = async function getChatMessagesByChatId(req, res) {
         .status(200)
         .json({ message: chatMessages , total : chatMessagesCount });
     }
-    console.log(chatMessages);
+    //console.log(chatMessages);
     return res.status(200).json({ message: chatMessages , total : chatMessagesCount});
   } catch (error) {
     if (error.code === "P2023") {
