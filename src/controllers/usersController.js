@@ -628,11 +628,7 @@ exports.uploadProfile = async (req, res) => {
       },
     });
     if (!user) {
-      return LoggerService.LoggerHandler(
-        STRINGS.STATUS_CODE.NOT_FOUND,
-        STRINGS.ERRORS.userNotExists,
-        res
-      );
+      return res.status(400).json({ message: "User does not Exist" });
     }
     // Convert milliseconds to seconds
     const currentTimeInSeconds = Math.floor(currentTimeInMilliseconds / 1000);
