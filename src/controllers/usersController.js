@@ -143,7 +143,7 @@ exports.logIn = async (req, res) => {
       delete isUser.password;
       res
         .status(200)
-        .json({ message: "login successful", isUser, token: jwtToken });
+        .json({ message: "login successful", user: isUser, token: jwtToken });
     } else {
       res.status(401).json({ message: "Invalid password" });
     }
