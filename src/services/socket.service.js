@@ -29,6 +29,7 @@ io.on("connection", async (socket) => {
         id: socket.userID,
       },
     });
+    console.log("user ---> ", user)
     if (!user) {
       return res.status(400).json({ message: "User does not Exist" });
     }
