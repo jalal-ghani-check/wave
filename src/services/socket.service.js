@@ -20,7 +20,7 @@ io.on("connection", async (socket) => {
   try {
     const decoded = jwt.verify(token, secretKey);
     socket.userID = decoded.id;
-    socket.broadcast.emit("Online", { userId: socket.userID });
+    socket.broadcast.emit("online", { userId: socket.userID });
     await prisma.user.update({
       where:
       {
@@ -120,7 +120,7 @@ io.on("connection", async (socket) => {
         recipientSocket.emit("privateMessage", {
           message: newChatMessage
         });
-        socket.emit("Acknowledgment", {
+        socket.emit("acknowledgment", {
           message: newChatMessage, chat: chatt
         });
 
@@ -138,7 +138,7 @@ io.on("connection", async (socket) => {
           }
         })
 
-        socket.emit("Acknowledgment", {
+        socket.emit("acknowledgment", {
           message: newChatMessage, chat: chatt
         });
         await sendCustomNotification(
@@ -160,7 +160,7 @@ io.on("connection", async (socket) => {
     }
   });
 
-  socket.on("ChatOpened", async (body) => {
+  socket.on("chatOpened", async (body) => {
     if (!body.chatId) {
       socket.emit("errorMessage", "Chat ID is required");
       return;
@@ -209,7 +209,7 @@ io.on("connection", async (socket) => {
   })
 
   socket.on("disconnect", async () => {
-    socket.broadcast.emit("Offline", { userId: socket.userID });
+    socket.broadcast.emit("offline", { userId: socket.userID });
     await prisma.user.update({
       where:
       {
