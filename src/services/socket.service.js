@@ -31,10 +31,13 @@ io.on("connection", async (socket) => {
         onlineStatus: "online"
       }
     })
-
+console.log("decoded token --->", decoded )
     socket.username = decoded.firstName;
     authenticatedUsers[socket.userID] = socket;
+    console.log("authenticatedUsers --->", authenticatedUsers )
+
   } catch (error) {
+    console.log("error ---> ", error)
     if (error.message === "jwt expired") {
       socket.emit("errorMessage", "Token Has Expired");
 
