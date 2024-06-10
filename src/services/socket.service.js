@@ -19,8 +19,20 @@ io.on("connection", async (socket) => {
   }
   try {
     const decoded = jwt.verify(token, secretKey);
+    console.log("decoded token --->", decoded )
+
     socket.userID = decoded.id;
     socket.broadcast.emit("online", { userId: socket.userID });
+    
+    let user = await prisma.user.findFirst({
+      where: {
+        id: socket.userID,
+      },
+    });
+    if (!user) {
+      return res.status(400).json({ message: "User does not Exist" });
+    }
+
     await prisma.user.update({
       where:
       {
@@ -31,7 +43,6 @@ io.on("connection", async (socket) => {
         onlineStatus: "online"
       }
     })
-console.log("decoded token --->", decoded )
     socket.username = decoded.firstName;
     authenticatedUsers[socket.userID] = socket;
     console.log("authenticatedUsers --->", authenticatedUsers )
