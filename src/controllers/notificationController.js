@@ -11,10 +11,8 @@ exports.sendCustomNotification = async (title, body, payload, token, res) => {
         title: title,
         body: body,
       },
-      data: {
-        payload : payload
-      },
-      token: token,
+      data: payload,
+      token,
     };
     await sendNotification(pushNotification);
   } catch (error) {

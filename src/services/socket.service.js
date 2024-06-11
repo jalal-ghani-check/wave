@@ -19,7 +19,6 @@ io.on("connection", async (socket) => {
   }
   try {
     const decoded = jwt.verify(token, secretKey);
-    console.log("decoded token --->", decoded )
 
     socket.userID = decoded.id;
     socket.broadcast.emit("online", { userId: socket.userID });
@@ -29,7 +28,6 @@ io.on("connection", async (socket) => {
         id: socket.userID,
       },
     });
-    console.log("user ---> ", user)
     if (!user) {
       return res.status(400).json({ message: "User does not Exist" });
     }
@@ -46,7 +44,6 @@ io.on("connection", async (socket) => {
     })
     socket.username = decoded.firstName;
     authenticatedUsers[socket.userID] = socket;
-    console.log("authenticatedUsers --->", authenticatedUsers )
 
   } catch (error) {
     console.log("error ---> ", error)
@@ -156,18 +153,31 @@ io.on("connection", async (socket) => {
         socket.emit("acknowledgment", {
           message: newChatMessage, chat: chatt
         });
-        await sendCustomNotification(
-          chatt.post.title,
-          newChatMessage.messageBody,
-          newChatMessage,
-          userWithFirebaseToken.firebaseToken
-        );
 
 
-        //socket.emit("errorMessage", "Recipient is offline");
-      }
+         await sendCustomNotification(                  
+           chatt.post.title,
+         newChatMessage.messageBody,    
+          
+             {
+              id: newChatMessage.id,
+              senderId: newChatMessage.senderId,
+              receiverId: newChatMessage.receiverId,
+              messageBody: newChatMessage.messageBody,
+              createdAt: newChatMessage.createdAt.toString(),
+              updatedAt: newChatMessage.updatedAt.toString(),
+              read: newChatMessage.read.toString(),
+              chatId: newChatMessage.chatId,
+             
+             },         
+          
+         userWithFirebaseToken.firebaseToken,  
+         );
+        
+       }
 
     } catch (error) {
+      console.log(error)
       if (error.code === "P2023") {
         console.error("Invalid Id Format");
       }
@@ -219,12 +229,23 @@ io.on("connection", async (socket) => {
       socket.emit("messagesRead", `You have read all ${messageRead.count} new messages.`);
     }
     catch (error) {
+    console.log(error)
       socket.emit("errorMessage", "Error making messages as read");
     }
   })
 
   socket.on("disconnect", async () => {
     socket.broadcast.emit("offline", { userId: socket.userID });
+
+    let user = await prisma.user.findFirst({
+      where: {
+        id: socket.userID,
+      },
+    });
+    if (!user) {
+      return res.status(400).json({ message: "User does not Exist" });
+    }
+
     await prisma.user.update({
       where:
       {
